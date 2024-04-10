@@ -1,7 +1,9 @@
 # NimCLS - Nim Classes & Dependency Injection Library
+
 Classes' macro and a lightweight dependency injection library for the Nim programming language, designed to help easily create and manage dependency injection by using classes.
 
 ## Features
+
 - **Classes**: Create Nim objects using a simple syntax, similar to Python.
 - **Debugging and Inspection Methods**: Make development easier with methods that help debug and inspect class objects.
 - **Superclass Invocation**: Effortlessly call the super class's methods of an object.
@@ -34,6 +36,7 @@ Class MyClass:
     method call(self: MyClass) : string {.base.} =
         return "Class"
 ```
+
 2. Set up an instance of the class and register it:
 
 ```nim
@@ -42,15 +45,16 @@ let myClassObj = MyClass()
 addSingleton(myClassObj)
 
 ```
+
 3. Retrieve the created instance with injected dependencies:
 
 ```nim
 
-proc run(myClass : MyClass = inject(MyClass)) =
-    myClassObj.call
+proc run(obj : MyClass = inject(MyClass)) =
+    obj.call
 
-run()
 ```
+
 ### Example
 
 ```nim
@@ -75,6 +79,7 @@ addInjector(Parent, createChild)
 callHello
 
 ```
+
 ### Injection Usage
 
 There are two ways to register an injection:
@@ -82,11 +87,13 @@ There are two ways to register an injection:
 1. Create an instance of the class and register it using `addSingleton` procedure.
 2. Create a procedure which returns a class object and register it using `addInjector` procedure.
 
-After registering an injection, call `inject` and pass the type of the object to get the object.
+After registering an injection, call `inject` and pass the registered type to get the object.
 
 #### Examples
 
 1. Adding a singleton:
+
+- *addSingleton[T]*
 
 ```nim
 ## only this instance of the class "MyClass" will be used.
@@ -94,29 +101,32 @@ let myClassObj = MyClass()
 addSingleton(myClassObj)
 ```
 
+- *addSingleton[R,T]*
+
 ```nim
 ## only this instance of the class "ChildClass" will be used
 ## but it will be registered as "ParentClass".
 ## "ChildClass" must be a subclass of  "ParentClass".
 let myClassObj = MyClass()
-addSingleton(ParentClass, child)
+addSingleton(ParentClass, myClassObj)
 ```
-
 
 2. Adding a procedure:
 
+- *addInjector[T]*
 
 ```nim
 ## A procedure that builds an instance of "ChildClass"
 proc createChild() : ChildClass =
     let child = ChildClass()
-    child.init("configuration")
+    child.init("configurations")
     return child
 ## Each time "ChildClass" is injected, "createChild" will be called
 ## and a new instance will be created
 addInjector(createChild)
 ```
 
+- *addInjector[R,T]*
 
 ```nim
 ## A procedure that builds an instance of "ChildClass"
@@ -130,15 +140,18 @@ proc createChild() : ChildClass =
 addInjector(ParentClass , createChild)
 ```
 
-
 3. Injecting:
 
+- *Passing it as a parameter*
+
 ```nim
-## A procedure that has a "ChildClass" parameter
+## A procedure that has a parameter of type "ChildClass" 
 proc runChild(child: ChildClass = inject(ChildClass) ) =
     child.run
 
 ```
+
+- *Getting it through a call*
 
 ```nim
 ## A procedure that makes inject call
@@ -150,62 +163,68 @@ proc runChild() =
 
 ## Limitations
 
-1. **Constants**: Nim programming language does not support constants properties for objects. So, `let` and `const` cannot be used for **classes' properties**.
+1. **Constructors**: Objects in Nim programming language cannot have a custom constructor.
+2. **Constants**: Nim programming language does not support constant properties for objects. So, `let` and `const` cannot be used for **classes' properties**.
+3. **Exporting class with no parent**: Although, it is easy to export any class (public class) using the star mark `*`. Nim's compiler does not allow the following:
 
-2. **Export class with no parent**: Although, it is easy to export any class (public class) using the star mark `*`. Nim's compiler does not allow the following:
- ```nim
- # causes a Syntax error !?!? 
+```nim
+# causes a syntax error !?!? 
 Class MyClass*:
-    var me: string
+   var me: string
 ```
 
-However, you can solve this issue in two ways:
+However, you can solve this issue in **two ways**:
 
-  ```nim
- # Exported and Runs!
+```nim
+# Exported and Runs!
 Class *MyClass:
-    var me: string
+  var me: string
 ```
 
 OR
 
- ```nim
- # All classes are subclasses of "ClassObj"
+```nim
+# All classes are subclasses of "ClassObj"
 Class MyClass*(ClassObj):
-    var me: string
+   var me: string
 ```
 
-3. **Super class calls**: Calling a super class's methods is easy using the class's method `super` but `procCall` must be used to make the call.
- ```nim
- # it will call the child object 'init' method 
- child.super.init
- # Works
- procCall child.super.init
+4. **Super class calls**: Calling a super class's methods is easy using the class's method `super` but `procCall` must be used to make the call.
+
+```nim
+# Not working, it will call the child object 'init' method 
+child.super.init
+
+# Works, it will call the super class method
+procCall child.super.init
 ```
 
-4. **Procedures and functions**: The classes's macro does not allow procedures and functions inside the class's body. Keeping procedures and functions outside of classes ensures that they remain relevant and focused solely on their intended functionality. Placing them within a class could introduce unnecessary complexity, leading to code that is harder to understand and maintain.
+5. **Procedures and functions**: The classes's macro does not allow procedures and functions inside the class's body. Keeping procedures and functions outside of classes ensures that they remain relevant and focused solely on their intended functionality. Placing them within a class could introduce unnecessary complexity, leading to code that is harder to understand and maintain.
 
-## Classes built-in methods
-Each class created has the following methods :
+## Methods and Procedures
 
-| Name                   | Arguments | Output        | Description                                                   |
-|------------------------|-----------|---------------|---------------------------------------------------------------|
-| `getClassName`         | None      | `string`      | Returns the class's name as a `string`.                       |
-| `getClassMethods`      | None      | `seq[string]` | Returns the class's methods in a sequence of `string`.        |
-| `getClassProperties`   | None      | `seq[string]` | Returns the class's properties in a sequence of `string`.     |
-| `getParentClassName`   | None      | `string`      | Returns the class's parent's class name as a `string`.        |
-| `super`                | None      | `ClassObj`    | Upcast the object and returns it.                             |
+- Each class's object has the following methods :
 
 
-## Injection procedures
+| Name                 | Arguments | Output        | Description                                              |
+| ---------------------|-----------|---------------|----------------------------------------------------------|
+| `getClassName`       |     ─     | `string`      | Returns the class's name as a`string`.                   |
+| `getClassMethods`    |     ─     | `seq[string]` | Returns the class's methods in a sequence of`string`.    |
+| `getClassProperties` |     ─     | `seq[string]` | Returns the class's properties in a sequence of`string`. |
+| `getParentClassName` |     ─     | `string`      | Returns the class's parent's class name as a`string`.    |
+| `super`              |     ─     | `ClassObj`    | Upcast the object and returns it.                        |
 
-| Name                | Argument 1           | Argument 2         | Output     | Description                                                                                             |
-|---------------------|----------------------|--------------------|------------|---------------------------------------------------------------------------------------------------------|
-| `addSingleton[T]`   | `ClassObj`           | None               | Void       | Adds a singleton object of type `T` to the injection table and uses `T` as key for it.                  |
-| `addSingleton[R,T]` | `typedesc[ClassObj]` | `ClassObj`         | Void       | Adds a singleton object of type `T` to the injection table and uses `R` as key for it.                  |
-| `addInjector[T]`    | `proc(): ClassObj`   | None               | Void       | Adds a procedure that returns an object of type `T` to the injectors table and uses `T` as key for it.  |
-| `addInjector[R,T]`  | `typedesc[ClassObj]` | `proc(): ClassObj` | Void       | Adds a procedure that returns an object of type `T` to the injectors table and uses `R` as key for it.  |
-| `inject[T]`         | `typedesc[ClassObj]` | None               | `ClassObj` | Returns an object of type `T` which exists in the injection.                                            |
-| `isInjectable[T]`   | `typedesc[ClassObj]` | None               | `bool`     | Returns `true` if an object or a procedure of type `T` exists in the tables otherwise `false`.          |
-| `isSingleton[T]`    | `typedesc[ClassObj]` | None               | `bool`     | Returns `true` if an object of type `T` exists in the injection table otherwise `false`.                |
-| `resetInjectTbl`    | None                 | None               | Void       | Rests and removes all entries in the injection and injectors tables.                                    |
+
+- Dependency injection's procedures :
+
+
+| Name                | Argument 1           | Argument 2         | Output       | Description                                                                                           |
+| --------------------|----------------------|--------------------|--------------|-------------------------------------------------------------------------------------------------------|
+| `addSingleton[T]`   | `ClassObj`           | ─                  | ─            | Adds a singleton object of type`T` to the injection table and uses `T` as key for it.                 |
+| `addSingleton[R,T]` | `typedesc[ClassObj]` | `ClassObj`         | ─            | Adds a singleton object of type`T` to the injection table and uses `R` as key for it.                 |
+| `addInjector[T]`    | `proc(): ClassObj`   | ─                  | ─            | Adds a procedure that returns an object of type`T` to the injectors table and uses `T` as key for it. |
+| `addInjector[R,T]`  | `typedesc[ClassObj]` | `proc(): ClassObj` | ─            | Adds a procedure that returns an object of type`T` to the injectors table and uses `R` as key for it. |
+| `inject[T]`         | `typedesc[ClassObj]` | ─                  | `ClassObj`   | Returns an object of type`T` which exists in the injection tables.                                    |
+| `isInjectable[T]`   | `typedesc[ClassObj]` | ─                  | `bool`       | Returns`true` if an object or a procedure of type `T` exists in the tables otherwise `false`.         |
+| `isSingleton[T]`    | `typedesc[ClassObj]` | ─                  | `bool`       | Returns`true` if an object of type `T` exists in the injection table otherwise `false`.               |
+| `resetInjectTbl`    | ─                    | ─                  | ─            | Resets and removes all entries in the injection and injectors tables.                                 |
