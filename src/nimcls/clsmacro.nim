@@ -38,7 +38,7 @@ proc getParentClass(head: NimNode, isExported: bool): NimNode {.compileTime.} =
                 if head[len(head) - 1].kind == nnkIdent:
                     output = head[len(head) - 1]
             else:
-                error("Invalid class definition sytanx")
+                error("Invalid class's definition sytanx")
     return output
 
 proc genClassDef(className, superClass: NimNode, isExported: bool): NimNode {.compileTime.} =
@@ -73,7 +73,11 @@ proc processMacro*(head, body: NimNode): NimNode =
                 methods.add(elem)
             of nnkVarSection: variablesSec.add(elem)
             of nnkCommentStmt: continue
-            else: error("Not allowed in classes' body")
+            of nnkConstSection: error("'const' cannot be used for classes' properties !!")
+            of nnkLetSection: error("'let' cannot be used for classes' properties !!")
+            of nnkFuncDef: error("functions cannot be added in the class's body !!")
+            of nnkProcDef: error("procedures cannot be added in the class's body !!")
+            else: error("Only methods and variables are allowed in classes' body")
     let 
         className: NimNode = getClassNameNode(head, isExported)
         superClass: NimNode = getParentClass(head, isExported)

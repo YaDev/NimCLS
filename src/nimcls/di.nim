@@ -1,6 +1,16 @@
 import tables
 import ./classobj
 
+const 
+    DUPLICATE_ERROR: string = "Duplicate injections for "
+    SUBCLASS_ERROR: string = " is not a subclass of ClassObj and cannot be added as an injection!!!"
+    SUBCLASS_1_ERROR: string = " is not a subclass of "
+    SUBCLASS_2_ERROR: string = " and cannot be added to the injection table!!!"
+    DUPLICATE_ERROR2: string = "Duplicate injections for the class: "
+    NOT_FOUND_ERROR: string = "Could not find the injection for the class: "
+    SUBCLASS_ERROR2: string = " is not a subclass of ClassObj and cannot be injected!!!"
+    ERRORS_OR: string = " or "
+
 
 type InjectionError* = object of ValueError
 
@@ -12,10 +22,10 @@ proc addSingleton*[T : ClassObj](obj : T) =
     when $ClassObj != $T:
         let signature: int = T.signature
         if injectionsTbl.hasKey(signature):
-            raise newException(InjectionError, "Duplicate injections for " & $T)
+            raise newException(InjectionError, DUPLICATE_ERROR & $T)
         injectionsTblSingleton[signature] = obj
     else:
-        raise newException(InjectionError, $T & " is not a subclass of ClassObj and cannot be added as an injection!!!")
+        raise newException(InjectionError, $T & SUBCLASS_ERROR)
 
 
 proc addSingleton*[T, R : ClassObj](clsDesc : typedesc[R], obj : T) =
@@ -23,22 +33,22 @@ proc addSingleton*[T, R : ClassObj](clsDesc : typedesc[R], obj : T) =
         if T is R :
             let signature: int = R.signature
             if injectionsTbl.hasKey(signature):
-                raise newException(InjectionError, "Duplicate injections for " & $R)
+                raise newException(InjectionError, DUPLICATE_ERROR & $R)
             injectionsTblSingleton[signature] = obj
         else:
-            raise newException(InjectionError, $T & " is not a subclass of " & $R & " and cannot be added to the injection table!!!")
+            raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
     else:
-        raise newException(InjectionError, $T & " or " & $R & " is not a subclass of ClassObj and cannot be added as an injection!!!")
+        raise newException(InjectionError, $T & ERRORS_OR & $R & SUBCLASS_ERROR)
 
 
 proc addInjector*[T: ClassObj](builder : proc(): T) =
     when $ClassObj != $T:
         let signature: int = T.signature
         if injectionsTblSingleton.hasKey(signature):
-            raise newException(InjectionError, "Duplicate injections for the class: " & $T)
+            raise newException(InjectionError, DUPLICATE_ERROR2 & $T)
         injectionsTbl[signature] = proc(): ClassObj = builder()
     else:
-        raise newException(InjectionError, $T & " is not a subclass of ClassObj and cannot be added as an injection!!!")
+        raise newException(InjectionError, $T & SUBCLASS_ERROR)
 
 
 proc addInjector*[T, R: ClassObj](clsDesc : typedesc[R], builder : proc(): T) =
@@ -46,12 +56,12 @@ proc addInjector*[T, R: ClassObj](clsDesc : typedesc[R], builder : proc(): T) =
         if T is R :
             let signature: int = R.signature
             if injectionsTblSingleton.hasKey(signature):
-                raise newException(InjectionError, "Duplicate injections for the class: " & $R)
+                raise newException(InjectionError, DUPLICATE_ERROR2 & $R)
             injectionsTbl[signature] = proc(): ClassObj = builder()
         else:
-            raise newException(InjectionError, $T & " is not a subclass of " & $R & " and cannot be added to the injection table!!!")
+            raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
     else:
-        raise newException(InjectionError, $T & " or " & $R & " is not a subclass of ClassObj and cannot be added as an injection!!!")
+        raise newException(InjectionError, $T & ERRORS_OR & $R & SUBCLASS_ERROR)
 
 
 proc inject*[T: ClassObj](clsDesc : typedesc[T]) : T =
@@ -64,9 +74,9 @@ proc inject*[T: ClassObj](clsDesc : typedesc[T]) : T =
             else:
                 return T(injectionsTblSingleton[signature])
         else:
-            raise newException(InjectionError, "Could not find the injection for the class: " & $clsDesc)
+            raise newException(InjectionError, NOT_FOUND_ERROR & $clsDesc)
     else:
-        raise newException(InjectionError, $T & " is not a subclass of ClassObj and cannot be injected!!!")
+        raise newException(InjectionError, $T & SUBCLASS_ERROR2)
 
 
 proc isInjectable*[T: ClassObj](clsDesc : typedesc[T]) : bool =
@@ -74,7 +84,7 @@ proc isInjectable*[T: ClassObj](clsDesc : typedesc[T]) : bool =
         let signature: int = clsDesc.signature
         return injectionsTblSingleton.hasKey(signature) or injectionsTbl.hasKey(signature)
     else:
-        raise newException(InjectionError, $T & " is not a subclass of ClassObj and cannot be injected!!!")
+        raise newException(InjectionError, $T & SUBCLASS_ERROR2)
 
 
 proc isSingleton*[T: ClassObj](clsDesc : typedesc[T]) : bool =
@@ -82,7 +92,7 @@ proc isSingleton*[T: ClassObj](clsDesc : typedesc[T]) : bool =
         let signature: int = clsDesc.signature
         return injectionsTblSingleton.hasKey(signature)
     else:
-        raise newException(InjectionError, $T & " is not a subclass of ClassObj and cannot be injected!!!")
+        raise newException(InjectionError, $T & SUBCLASS_ERROR2)
 
 
 proc resetInjectTbl*() =
