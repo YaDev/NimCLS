@@ -14,7 +14,7 @@ Class *Service:
         
 Class ChildServiceA*(Service):
     var port: int
-    method init*(self: ChildServiceA, port: int) =
+    method init*(self: ChildServiceA, port: int) {.base.} =
         procCall super(self).init(url2)
         self.port = port
     method getPort*(self: ChildServiceA): int {.base.} =
@@ -25,11 +25,11 @@ Class ChildServiceA*(Service):
 Class ChildServiceB*(Service):
     var port: int
     var key*: string
-    method init*(self: ChildServiceB, port: int, key: string) =
+    method init*(self: ChildServiceB, port: int, key: string) {.base.} =
         procCall self.super.init(url3)
         self.port = port
         self.key = key
-    method getPort*(self: ChildServiceB): int =
+    method getPort*(self: ChildServiceB): int {.base.} =
         return self.port
     method getURL*(self: ChildServiceB): string =
         return url4

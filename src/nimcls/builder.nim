@@ -1,8 +1,6 @@
 import 
     macros,
-    typetraits,
     intsets,
-    tables,
     sequtils,
     random,
     strutils
@@ -39,7 +37,7 @@ proc buildClass*(classDef, superClass, className, methodsNamesLit, propsLit: Nim
         when @superClass is ClassObj:
 
             method getClassName*(self: @className): string =
-                return name(type(self))
+                return $self.type
 
             method getClassMethods*(self: @className): seq[string]  =
                 var superMethods = procCall @superClass(self).getClassMethods()
@@ -52,7 +50,7 @@ proc buildClass*(classDef, superClass, className, methodsNamesLit, propsLit: Nim
             method getParentClassName*(self: @className): string =
                 return @superClassNameLit
 
-            method super*(self: @className): @superClass =
+            method super*(self: @className): @superClass {.base.} =
                 return @superClass(self)
 
             proc signature*(classType: typedesc[@className]): int =

@@ -13,6 +13,3 @@ method getClassProperties*(self: ClassObj): seq[string] {.base.} =
 
 method getParentClassName*(self: ClassObj): string {.base.} =
     return $RootObj
-
-method super*(self: ClassObj): ClassObj {.base.} =
-    return self
