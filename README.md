@@ -10,7 +10,7 @@ Classes' macro and a lightweight dependency injection library for the Nim progra
 - **Dependency Injection**: Easily inject dependencies into your code and reduce boilerplate code.
 - **Singleton Management**: Manage and create singleton instances of classes.
 - **Custom Injectors**: Create custom injectors to manage dependencies just the way you need.
-- **Pass Injection**: Pass dependencies through procedures, functions and methods parameters.
+- **Pass Injection**: Pass dependencies through constructors, procedures, functions and methods parameters.
 - **Minimal Overhead**: Keep your application lightweight with NimCLS's minimal overhead (Zero Dependencies).
 
 ## Usage
@@ -69,14 +69,14 @@ Class Child(Parent):
     method hello(self: Child)  =
         echo "Hello!! Child"
 
-proc callHello(classObject: Parent = inject(Parent))
+proc callHello(classObject: Parent = inject(Parent)) =
     classObject.hello
 
 let createChild = proc(): Child = Child()
 addInjector(Parent, createChild)
 
 ## prints "Hello!! Child"
-callHello
+callHello()
 
 ```
 
@@ -151,6 +151,15 @@ proc runChild(child: ChildClass = inject(ChildClass) ) =
 
 ```
 
+- *Passing it to a constructor *
+
+```nim
+Class User:
+    var tools : Tools
+
+let user = User(tools: inject(Tools))
+```
+
 - *Getting it through a call*
 
 ```nim
@@ -163,9 +172,9 @@ proc runChild() =
 
 ## Limitations
 
-1. **Constructors**: Objects in Nim programming language cannot have a custom constructor.
+1. **Constructors**: In the Nim programming language, objects cannot be created with a custom constructor. 
 2. **Constants**: Nim programming language does not support constant properties for objects. So, `let` and `const` cannot be used for **classes' properties**.
-3. **Exporting class with no parent**: Although, it is easy to export any class (public class) using the star mark `*`. Nim's compiler does not allow the following:
+3. **Exporting class with no parent**: While it is simple to export any public class using the asterisk (`*`) symbol, Nim's compiler doesn't permit the following:
 
 ```nim
 # causes a syntax error !?!? 
@@ -199,7 +208,7 @@ child.super.init
 procCall child.super.init
 ```
 
-5. **Procedures and functions**: The classes's macro does not allow procedures and functions inside the class's body. Keeping procedures and functions outside of classes ensures that they remain relevant and focused solely on their intended functionality. Placing them within a class could introduce unnecessary complexity, leading to code that is harder to understand and maintain.
+5. **Procedures and functions**: The classes's macro does not accept procedures and functions inside the class's body. Keeping procedures and functions outside of classes ensures that they remain relevant and focused solely on their intended functionality. Placing them within a class could introduce unnecessary complexity, leading to code that is harder to understand and maintain.
 
 ## Methods and Procedures
 

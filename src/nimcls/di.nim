@@ -20,21 +20,19 @@ var injectionsTbl {.global.} = initTable[int, proc(): ClassObj]()
 
 proc addSingleton*[T : ClassObj](obj : T) =
     when $ClassObj != $T:
-        let signature: int = T.signature
-        if injectionsTbl.hasKey(signature):
+        if injectionsTbl.hasKey(T.signature):
             raise newException(InjectionError, DUPLICATE_ERROR & $T)
-        injectionsTblSingleton[signature] = obj
+        injectionsTblSingleton[T.signature] = obj
     else:
         raise newException(InjectionError, $T & SUBCLASS_ERROR)
 
 
 proc addSingleton*[T, R : ClassObj](clsDesc : typedesc[R], obj : T) =
-    when $ClassObj != $T and $ClassObj != $R and T is R:
+    when $ClassObj != $T and $ClassObj != $R:
         if T is R :
-            let signature: int = R.signature
-            if injectionsTbl.hasKey(signature):
+            if injectionsTbl.hasKey(R.signature):
                 raise newException(InjectionError, DUPLICATE_ERROR & $R)
-            injectionsTblSingleton[signature] = obj
+            injectionsTblSingleton[R.signature] = obj
         else:
             raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
     else:
@@ -43,21 +41,19 @@ proc addSingleton*[T, R : ClassObj](clsDesc : typedesc[R], obj : T) =
 
 proc addInjector*[T: ClassObj](builder : proc(): T) =
     when $ClassObj != $T:
-        let signature: int = T.signature
-        if injectionsTblSingleton.hasKey(signature):
+        if injectionsTblSingleton.hasKey(T.signature):
             raise newException(InjectionError, DUPLICATE_ERROR2 & $T)
-        injectionsTbl[signature] = proc(): ClassObj = builder()
+        injectionsTbl[T.signature] = proc(): ClassObj = builder()
     else:
         raise newException(InjectionError, $T & SUBCLASS_ERROR)
 
 
 proc addInjector*[T, R: ClassObj](clsDesc : typedesc[R], builder : proc(): T) =
-    when $ClassObj != $T and $ClassObj != $R and T is R:
+    when $ClassObj != $T and $ClassObj != $R:
         if T is R :
-            let signature: int = R.signature
-            if injectionsTblSingleton.hasKey(signature):
+            if injectionsTblSingleton.hasKey(R.signature):
                 raise newException(InjectionError, DUPLICATE_ERROR2 & $R)
-            injectionsTbl[signature] = proc(): ClassObj = builder()
+            injectionsTbl[R.signature] = proc(): ClassObj = builder()
         else:
             raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
     else:
@@ -66,13 +62,11 @@ proc addInjector*[T, R: ClassObj](clsDesc : typedesc[R], builder : proc(): T) =
 
 proc inject*[T: ClassObj](clsDesc : typedesc[T]) : T =
     when $ClassObj != $T:
-        if isInjectable(clsDesc):
-            let signature: int = clsDesc.signature
-            if injectionsTbl.hasKey(signature) :
-                let callProc = injectionsTbl[signature]
-                return T(callProc())
-            else:
-                return T(injectionsTblSingleton[signature])
+        if injectionsTblSingleton.hasKey(clsDesc.signature):
+            return T(injectionsTblSingleton[clsDesc.signature])
+        elif injectionsTbl.hasKey(clsDesc.signature) :
+            let callProc = injectionsTbl[clsDesc.signature]
+            return T(callProc())
         else:
             raise newException(InjectionError, NOT_FOUND_ERROR & $clsDesc)
     else:
@@ -81,20 +75,18 @@ proc inject*[T: ClassObj](clsDesc : typedesc[T]) : T =
 
 proc isInjectable*[T: ClassObj](clsDesc : typedesc[T]) : bool =
     when $ClassObj != $T:
-        let signature: int = clsDesc.signature
-        return injectionsTblSingleton.hasKey(signature) or injectionsTbl.hasKey(signature)
+        return injectionsTblSingleton.hasKey(clsDesc.signature) or injectionsTbl.hasKey(clsDesc.signature)
     else:
         raise newException(InjectionError, $T & SUBCLASS_ERROR2)
 
 
 proc isSingleton*[T: ClassObj](clsDesc : typedesc[T]) : bool =
     when $ClassObj != $T:
-        let signature: int = clsDesc.signature
-        return injectionsTblSingleton.hasKey(signature)
+        return injectionsTblSingleton.hasKey(clsDesc.signature)
     else:
         raise newException(InjectionError, $T & SUBCLASS_ERROR2)
 
 
 proc resetInjectTbl*() =
-    injectionsTblSingleton = initTable[int, ClassObj]()
-    injectionsTbl = initTable[int, proc(): ClassObj]()
+    injectionsTblSingleton.clear
+    injectionsTbl.clear
