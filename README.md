@@ -151,7 +151,7 @@ proc runChild(child: ChildClass = inject(ChildClass) ) =
 
 ```
 
-- *Passing it to a constructor *
+- *Passing it to a constructor*
 
 ```nim
 Class User:
