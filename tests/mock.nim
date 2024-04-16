@@ -50,3 +50,26 @@ Class *AB:
     var number*: int = 2
 Class *AC:
     var number*: int = 3
+
+Class static *Loader:
+    var path: string
+    var code*: int = 22
+    method load*(self: Loader) : string {.base.} =
+        return "LoaderCall"
+
+Class static ChildLoaderA*(Loader):
+    method load*(self: ChildLoaderA) : string =
+        return "ChildLoaderACall"
+    var more: int
+
+
+Class static ChildLoaderB*(Loader):
+    method load*(self: ChildLoaderB): string =
+        return "ChildLoaderBCall"
+
+Class static *SAA:
+    var number*: int = 1
+Class static *SAB:
+    var number*: int = 2
+Class static *SAC:
+    var number*: int = 3

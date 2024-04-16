@@ -30,11 +30,11 @@ proc buildClass*(classDef, superClass, className, methodsNamesLit, propsLit: Nim
     let
         signature: int =  genSignature()
         signatureLit: NimNode = newLit(signature)
-        superClassError: NimNode = newLit(superClass.strVal & " cannot be used as a parent class!")
+        superClassError: NimNode = newLit(superClass.strVal & " cannot be used as a parent class. Types mismatch error!")
         superClassNameLit: NimNode = newLit(superClass.strVal)
     result = quote("@") do:
         @classDef
-        when @superClass is ClassObj:
+        when (@superClass is ClassObj and @className is ref RootObj) or (@superClass is ClassStaticObj and @className is RootObj) :
 
             method getClassName*(self: @className): string =
                 return $self.type

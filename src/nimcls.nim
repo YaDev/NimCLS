@@ -2,6 +2,7 @@ import nimcls/[clsmacro, classobj, di]
 
 export 
     ClassObj,
+    ClassStaticObj,
     InjectionError,
     addSingleton,
     addInjector,
