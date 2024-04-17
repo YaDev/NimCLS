@@ -13,3 +13,4 @@
 | [nestedsuper.nim](https://github.com/YaDev/NimCLS/blob/master/examples/nestedsuper.nim)     | An example for calling super class method and procedure.                    |
 | [benchmark_1.nim](https://github.com/YaDev/NimCLS/blob/master/examples/benchmark_1.nim)     | A simple comparison of static and dynamic dispatch using classes and DI.    |
 | [benchmark_2.nim](https://github.com/YaDev/NimCLS/blob/master/examples/benchmark_2.nim)     | A simple comparison of `object` and `ref object` creation cost.             |
+| [benchmark_3.nim](https://github.com/YaDev/NimCLS/blob/master/examples/benchmark_3.nim)     | A simple comparison of procedures calls vs objects's procedures calls.      |
