@@ -29,4 +29,4 @@ method getClassProperties*(self: ClassStaticObj): seq[string] {.base.} =
     return @[]
 
 method getParentClassName*(self: ClassStaticObj): string {.base.} =
-    return $ClassStaticObj
+    return $RootObj
