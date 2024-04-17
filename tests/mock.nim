@@ -39,6 +39,10 @@ Class ChildServiceB*(Service):
         procCall self.super.init(url2)
 
 Class ChildServiceC*(ChildServiceB):
+    proc runService(self: ChildServiceC) =
+        discard
+    func calcNumber(self: ChildServiceC) : int =
+        return self.port*100
     method getKey(self: ChildServiceC) : string {.base.} =
         return self.key
     method getURL*(self: ChildServiceC): string =

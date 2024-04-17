@@ -1,4 +1,4 @@
-import macros
+import macros, sets
 import 
     ./builder,
     ./classobj
@@ -111,32 +111,70 @@ proc isClassExported(head: NimNode, isStatic: bool): bool {.compileTime.} =
             if $head[0] == "*":
                 return true
     return false
-    
+
+proc isValidFuncOrProcOrMeth(def, className: NimNode) : bool =
+    if def.len > 4:
+        if def[3].kind == nnkFormalParams and len(def[3]) > 1 :
+            if def[3][1].kind == nnkIdentDefs and len(def[3][1]) > 1 :
+                if def[3][1][1].kind == nnkIdent:
+                    if $def[3][1][1] == $className:
+                        return true
+    return false
+
+
 proc processMacro*(head, body: NimNode): NimNode =
     var
-        methods: seq[NimNode] = @[]
+        bodyNodes: seq[NimNode] = @[]
         variablesSec: seq[NimNode] = @[]
-        methodsNames: seq[string] = @[]
+        methodsProcFuncNames: HashSet[string] = initHashSet[string]()
+        callsNames: seq[string] = @[]
         scratchRecList = newNimNode(nnkRecList)
 
     let isStatic: bool = isItStatic(head)
     let isExported: bool = isClassExported(head, isStatic)
     for elem in body:
         case elem.kind:
-            of nnkMethodDef:
-                if elem[0].kind == nnkPostfix:
-                    methodsNames.add(elem[0][1].strVal)
-                else:
-                    methodsNames.add(elem[0].strVal)
-                methods.add(elem)
             of nnkVarSection: variablesSec.add(elem)
-            of nnkCommentStmt: continue
+            of nnkCommentStmt: bodyNodes.add(elem)
             of nnkConstSection: error("'const' cannot be used for classes' properties !!")
             of nnkLetSection: error("'let' cannot be used for classes' properties !!")
-            of nnkFuncDef: error("functions cannot be added in the class's body !!")
-            of nnkProcDef: error("procedures cannot be added in the class's body !!")
-            else: error("Only methods and variables are allowed in classes' body")
+            of nnkMethodDef:
+                let namesCount: int =  methodsProcFuncNames.len
+                var methodName: string
+                if elem[0].kind == nnkPostfix:
+                    methodName = $elem[0][1]
+                else:
+                    methodName = $elem[0]
+                methodsProcFuncNames.incl(methodName)
+                if namesCount == methodsProcFuncNames.len:
+                    error("A duplicate name for a method, procedure or function: '" & methodName  & "'")
+                bodyNodes.add(elem)
+            of nnkFuncDef: 
+                let namesCount: int =  methodsProcFuncNames.len
+                var funcName: string
+                if elem[0].kind == nnkPostfix:
+                    funcName = $elem[0][1]
+                else:
+                    funcName = $elem[0]
+                methodsProcFuncNames.incl(funcName)
+                if namesCount == methodsProcFuncNames.len:
+                    error("A duplicate name for a method, procedure or function: '" & funcName & "'")
+                bodyNodes.add(elem)
+            of nnkProcDef:
+                let namesCount: int =  methodsProcFuncNames.len
+                var procName: string
+                if elem[0].kind == nnkPostfix:
+                    procName = $elem[0][1]
+                else:
+                    procName = $elem[0]
+                methodsProcFuncNames.incl(procName)
+                if namesCount == methodsProcFuncNames.len:
+                    error("A duplicate name for a method, procedure or function: '" & procName & "'")
+                bodyNodes.add(elem)
+            else: error("Only methods, procedures, functions and variables are allowed in classes' body")
 
+    for name in methodsProcFuncNames:
+        callsNames.add(name)
     var superClass: NimNode
     if isStatic:
         superClass = getParentClassStatic(head)
@@ -171,7 +209,38 @@ proc processMacro*(head, body: NimNode): NimNode =
     else:
         props = buildClassPropertiesSeq(classDef[0][2][0][2])
     var propsLit: NimNode =  newLit(props)
-    var methodsNamesLit: NimNode = newLit(methodsNames)
+    var methodsNamesLit: NimNode = newLit(callsNames)
     result = buildClass(classDef, superClass, className, methodsNamesLit, propsLit)
-    for m in methods:
-        result.add(m)
+    for node in bodyNodes:
+        if node.kind == nnkFuncDef:
+            if isValidFuncOrProcOrMeth(node, className):
+                result.add(node)
+            else:
+                var nameOfFunc: string
+                if node[0].kind == nnkPostfix:
+                    nameOfFunc = $node[0][1]
+                else:
+                    nameOfFunc = $node[0]
+                error("Invalid or unrelated function was found : '" & nameOfFunc & "'. The first parameter of the function must be its class's object.")
+        elif node.kind == nnkProcDef:
+            if isValidFuncOrProcOrMeth(node, className):
+                result.add(node)
+            else:
+                var nameOfProc: string
+                if node[0].kind == nnkPostfix:
+                    nameOfProc = $node[0][1]
+                else:
+                    nameOfProc = $node[0]
+                error("Invalid or unrelated procedure was found : '" & nameOfProc & "'. The first parameter of the procedure must be its class's object.")
+        elif node.kind == nnkMethodDef:
+            if isValidFuncOrProcOrMeth(node, className):
+                result.add(node)
+            else:
+                var nameOfProc: string
+                if node[0].kind == nnkPostfix:
+                    nameOfProc = $node[0][1]
+                else:
+                    nameOfProc = $node[0]
+                error("Invalid or unrelated method was found : '" & nameOfProc & "'. The first parameter of the method must be its class's object.")
+        else:
+            result.add(node)

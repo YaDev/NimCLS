@@ -147,8 +147,8 @@ proc test_classes_signature_injection() =
         assert injectedSAB.type is SAB
         assert injectedSAA.getClassProperties.len == 1
         assert injectedSAB.getClassProperties.len == 1
-        assert injectedSAA.getClassMethods.len == 5
-        assert injectedSAB.getClassMethods.len == 5
+        assert injectedSAA.getClassCalls.len == 5
+        assert injectedSAB.getClassCalls.len == 5
         assert injectedSAA.number == -100
         assert injectedSAB.number == 123
         assert not isInjectable(SAC)

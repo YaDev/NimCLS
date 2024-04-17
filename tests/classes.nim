@@ -33,19 +33,21 @@ proc test_classes() =
 
     test_getClassName()
 
-    ### Test getClassMethods ###
-    proc test_getClassMethods() =
-        assert sevice.getClassMethods.len == 7
-        assert childA.getClassMethods.len == 9
-        assert childB.getClassMethods.len == 10
-        assert childC.getClassMethods.len == 11
+    ### Test getClassCalls ###
+    proc test_getClassCalls() =
+        assert sevice.getClassCalls.len == 7
+        assert childA.getClassCalls.len == 9
+        assert childB.getClassCalls.len == 10
+        assert childC.getClassCalls.len == 13
 
-        assert "init" in sevice.getClassMethods
-        assert "connect" in childA.getClassMethods
-        assert "getPort" in childB.getClassMethods
-        assert "callParentURL" in childC.getClassMethods
+        assert "init" in sevice.getClassCalls
+        assert "connect" in childA.getClassCalls
+        assert "getPort" in childB.getClassCalls
+        assert "callParentURL" in childC.getClassCalls
+        assert "runService" in childC.getClassCalls
+        assert "calcNumber" in childC.getClassCalls
     
-    test_getClassMethods()
+    test_getClassCalls()
 
     ### Test getClassProperties ###
     proc test_getClassProperties() =

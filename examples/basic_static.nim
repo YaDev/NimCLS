@@ -12,7 +12,7 @@ let basic = MyClass(two: "a string")
 echo "one value: " & $basic.one
 echo "two value: " & basic.two
 echo basic.getClassName & " methods :"
-echo basic.getClassMethods
+echo basic.getClassCalls
 echo basic.getClassName & " propearties :"
 echo basic.getClassProperties
 echo basic.getClassName & " parent class's name :"

@@ -27,17 +27,17 @@ proc test_static_classes() =
     test_getClassName()
 
 
-    ### Test getClassMethods ###
-    proc test_getClassMethods() =
-        assert loader.getClassMethods.len == 6
-        assert loaderA.getClassMethods.len == 6
-        assert loaderB.getClassMethods.len == 6
+    ### Test getClassCalls ###
+    proc test_getClassCalls() =
+        assert loader.getClassCalls.len == 6
+        assert loaderA.getClassCalls.len == 6
+        assert loaderB.getClassCalls.len == 6
 
-        assert "load" in loader.getClassMethods
-        assert "load" in loaderA.getClassMethods
-        assert "load" in loaderB.getClassMethods
+        assert "load" in loader.getClassCalls
+        assert "load" in loaderA.getClassCalls
+        assert "load" in loaderB.getClassCalls
 
-    test_getClassMethods()
+    test_getClassCalls()
 
     ### Test getClassProperties ###
     proc test_getClassProperties() =

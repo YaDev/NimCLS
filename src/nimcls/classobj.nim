@@ -5,8 +5,8 @@ type
 method getClassName*(self: ClassObj): string {.base.} =
     return $self.type
 
-method getClassMethods*(self: ClassObj): seq[string] {.base.} =
-    return @["getClassName", "getClassProperties", "getClassMethods", "getParentClassName", "super"]
+method getClassCalls*(self: ClassObj): seq[string] {.base.} =
+    return @["getClassName", "getClassProperties", "getClassCalls", "getParentClassName", "super"]
 
 method getClassProperties*(self: ClassObj): seq[string] {.base.} =
     return @[]
@@ -22,8 +22,8 @@ type
 method getClassName*(self: ClassStaticObj): string {.base.} =
     return $self.type
 
-method getClassMethods*(self: ClassStaticObj): seq[string] {.base.} =
-    return @["getClassName", "getClassProperties", "getClassMethods", "getParentClassName", "super"]
+method getClassCalls*(self: ClassStaticObj): seq[string] {.base.} =
+    return @["getClassName", "getClassProperties", "getClassCalls", "getParentClassName", "super"]
 
 method getClassProperties*(self: ClassStaticObj): seq[string] {.base.} =
     return @[]

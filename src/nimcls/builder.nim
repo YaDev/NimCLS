@@ -39,8 +39,8 @@ proc buildClass*(classDef, superClass, className, methodsNamesLit, propsLit: Nim
             method getClassName*(self: @className): string =
                 return $self.type
 
-            method getClassMethods*(self: @className): seq[string]  =
-                var superMethods = procCall @superClass(self).getClassMethods()
+            method getClassCalls*(self: @className): seq[string]  =
+                var superMethods = procCall @superClass(self).getClassCalls()
                 return deduplicate( superMethods & @methodsNamesLit )
 
             method getClassProperties*(self: @className): seq[string]  =

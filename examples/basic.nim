@@ -10,7 +10,7 @@ Class MyClass:
 
 let basic = MyClass()
 echo basic.getClassName & " methods :"
-echo basic.getClassMethods
+echo basic.getClassCalls
 echo basic.getClassName & " properties :"
 echo basic.getClassProperties
 echo basic.getClassName & " parent class's name :"
