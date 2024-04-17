@@ -62,10 +62,14 @@ import nimcls
 
 Class Parent:
     var value: int = 10
+    proc getValue(self: Parent): int =
+        return self.value
     method hello(self: Parent) {.base.} =
         echo "Hello!! Parent"
 
 Class Child(Parent):
+    proc getValue(self: Child): int =
+        return self.value + 10
     method hello(self: Child)  =
         echo "Hello!! Child"
 
@@ -105,7 +109,7 @@ import nimcls
 
 Class static Person:
     var name: string = ""
-    method hello(self: Person) {.base.} =
+    proc hello(self: Person) =
         echo "Hello!! my name is " & self.name
 
 let person = Person(name: "Other Name")
