@@ -1,7 +1,7 @@
 import ../src/nimcls
 import times
 
-Class Loader:
+Class static Loader:
     var file: string
     method load(self: Loader) {.base.} =
         echo "Loading: " & self.file
@@ -19,8 +19,7 @@ Class Handler:
         echo "=== Finished ==="
 
 proc setup() =
-    let myLoader = Loader()
-    myLoader.file = "/tmp/test.txt"
+    let myLoader = Loader(file: "/tmp/test.txt")
 
     addSingleton(myLoader)
     addInjector(
