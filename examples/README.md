@@ -10,6 +10,6 @@
 | [inheritance_2.nim](https://github.com/YaDev/NimCLS/blob/master/examples/inheritance_2.nim) | A basic example for creating a static class and a subclass.                 |
 | [injection_1.nim](https://github.com/YaDev/NimCLS/blob/master/examples/injection_1.nim)     | An example for dependency injection using `addSingleton`.                   |
 | [injection_2.nim](https://github.com/YaDev/NimCLS/blob/master/examples/injection_2.nim)     | An example for dependency injection using `addSingleton` and `addInjector`. |
-| [nestedsuper.nim](https://github.com/YaDev/NimCLS/blob/master/examples/nestedsuper.nim)     | An example for calling super class method.                                  |
+| [nestedsuper.nim](https://github.com/YaDev/NimCLS/blob/master/examples/nestedsuper.nim)     | An example for calling super class method and procedure.                    |
 | [benchmark_1.nim](https://github.com/YaDev/NimCLS/blob/master/examples/benchmark_1.nim)     | A simple comparison of static and dynamic dispatch using classes and DI.    |
 | [benchmark_2.nim](https://github.com/YaDev/NimCLS/blob/master/examples/benchmark_2.nim)     | A simple comparison of `object` and `ref object` creation cost.             |

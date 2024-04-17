@@ -6,7 +6,7 @@ Classes' macro and a lightweight dependency injection library for the Nim progra
 
 - **Classes**: Create Nim objects using a simple syntax, similar to Python.
 - **Debugging and Inspection Methods**: Make development easier with methods that help debug and inspect class objects.
-- **Superclass Invocation**: Effortlessly call the super class's methods of an object.
+- **Superclass Invocation**: Effortlessly call the super class's methods, procedures and functions of an object.
 - **Dependency Injection**: Easily inject dependencies into your code and reduce boilerplate code.
 - **Singleton Management**: Manage and create singleton instances of classes.
 - **Custom Injectors**: Create custom injectors to manage dependencies just the way you need.
@@ -259,20 +259,20 @@ child.super.init
 procCall child.super.init
 ```
 
-5. **Procedures and functions**: The classes's macro does not accept procedures and functions inside the class's body. Keeping procedures and functions outside of classes ensures that they remain relevant and focused solely on their intended functionality. Placing them within a class could introduce unnecessary complexity, leading to code that is harder to understand and maintain.
+5. **Methods, Procedures and functions**: The class's macro only allows methods, procedures, and functions that utilize the class's object as their **first parameter** within the class's body. By keeping unrelated methods, procedures, and functions outside of classes, we ensure their focus remains on their intended functionality. Placing them within a class may introduce unnecessary complexity, making the code harder to understand and maintain.
 
 ## Methods and Procedures
 
 - Each class's object has the following methods :
 
 
-| Name                 | Arguments | Returns                        | Description                                              |
-|----------------------|-----------|--------------------------------|----------------------------------------------------------|
-| `getClassName`       | ─         | `string`                       | Returns the class's name as a`string`.                   |
-| `getClassMethods`    | ─         | `seq[string]`                  | Returns the class's methods in a sequence of`string`.    |
-| `getClassProperties` | ─         | `seq[string]`                  | Returns the class's properties in a sequence of`string`. |
-| `getParentClassName` | ─         | `string`                       | Returns the class's parent's class name as a`string`.    |
-| `super`              | ─         | `ClassObj` or `ClassStaticObj` | Upcasts the object and returns it.                       |
+| Name                 | Arguments | Returns                        | Description                                                                        |
+|----------------------|-----------|--------------------------------|------------------------------------------------------------------------------------|
+| `getClassName`       | ─         | `string`                       | Returns the class's name as a`string`.                                             |
+| `getClassCalls`      | ─         | `seq[string]`                  | Returns the class's procedures, functions and methods in a sequence of`string`.    |
+| `getClassProperties` | ─         | `seq[string]`                  | Returns the class's properties in a sequence of`string`.                           |
+| `getParentClassName` | ─         | `string`                       | Returns the class's parent's class name as a`string`.                              |
+| `super`              | ─         | `ClassObj` or `ClassStaticObj` | Upcasts the object and returns it.                                                 |
 
 - Dependency injection's procedures :
 
