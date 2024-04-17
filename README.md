@@ -80,6 +80,53 @@ callHello()
 
 ```
 
+### Classes Usage
+
+There are two types of classes that can be used:
+
+1- Regular Class (Nim's `ref object`)
+
+```nim
+import nimcls
+
+Class Person:
+    var name: string
+    method hello(self: Person) {.base.} =
+        echo "Hello!! my name is " & self.name
+
+let person = Person()
+person.name = "Nim Dev"
+```
+
+2- Static Class (Nim's `object`)
+
+```nim
+import nimcls
+
+Class static Person:
+    var name: string = ""
+    method hello(self: Person) {.base.} =
+        echo "Hello!! my name is " & self.name
+
+let person = Person(name: "Other Name")
+# Error: properties cannot be updated
+# person.name = "Nim Dev"
+```
+
+**What are the differences:**
+
+1. ***ref object***:
+
+- A ref object is a reference type. When you assign a ref object to another variable or pass it as a parameter to a procedure, you're passing a reference to the same object.
+- ref object types are typically used for larger, mutable data structures where you want reference semantics, such as classes in other programming languages.
+- They are allocated on the heap, and their memory is managed by the garbage collector. They are automatically deallocated when there are no more references to them.
+
+2. ***object***:
+
+- An object is a value type. When you assign an object to another variable or pass it as a parameter to a procedure, a copy of the object is made.
+- object types are typically used for small, immutable data structures where you want value semantics, such as structs in other programming languages.
+- They are allocated on the stack, and their memory is automatically deallocated when they go out of scope.
+
 ### Injection Usage
 
 There are two ways to register an injection:
@@ -154,7 +201,7 @@ proc runChild(child: ChildClass = inject(ChildClass) ) =
 - *Passing it to a constructor*
 
 ```nim
-Class User:
+Class static User:
     var tools : Tools
 
 let user = User(tools: inject(Tools))
@@ -172,9 +219,9 @@ proc runChild() =
 
 ## Limitations
 
-1. **Constructors**: In the Nim programming language, objects cannot be created with a custom constructor. 
+1. **Constructors**: In the Nim programming language, objects cannot be created with a custom constructor.
 2. **Constants**: Nim programming language does not support constant properties for objects. So, `let` and `const` cannot be used for **classes' properties**.
-3. **Exporting class with no parent**: While it is simple to export any public class using the asterisk (`*`) symbol, Nim's compiler doesn't permit the following:
+3. **Exporting classes with no parent**: While it is simple to export any class using the asterisk (`*`) symbol, Nim's compiler doesn't permit the following:
 
 ```nim
 # causes a syntax error !?!? 
@@ -193,8 +240,12 @@ Class *MyClass:
 OR
 
 ```nim
-# All classes are subclasses of "ClassObj"
+# All regular classes are subclasses of "ClassObj"
 Class MyClass*(ClassObj):
+   var me: string
+
+# All static classes are subclasses of "ClassStaticObj"
+Class static MyClass*(ClassStaticObj):
    var me: string
 ```
 
@@ -215,25 +266,24 @@ procCall child.super.init
 - Each class's object has the following methods :
 
 
-| Name                 | Arguments | Output        | Description                                              |
-| ---------------------|-----------|---------------|----------------------------------------------------------|
-| `getClassName`       |     ─     | `string`      | Returns the class's name as a`string`.                   |
-| `getClassMethods`    |     ─     | `seq[string]` | Returns the class's methods in a sequence of`string`.    |
-| `getClassProperties` |     ─     | `seq[string]` | Returns the class's properties in a sequence of`string`. |
-| `getParentClassName` |     ─     | `string`      | Returns the class's parent's class name as a`string`.    |
-| `super`              |     ─     | `ClassObj`    | Upcast the object and returns it.                        |
-
+| Name                 | Arguments | Returns                        | Description                                              |
+|----------------------|-----------|--------------------------------|----------------------------------------------------------|
+| `getClassName`       | ─         | `string`                       | Returns the class's name as a`string`.                   |
+| `getClassMethods`    | ─         | `seq[string]`                  | Returns the class's methods in a sequence of`string`.    |
+| `getClassProperties` | ─         | `seq[string]`                  | Returns the class's properties in a sequence of`string`. |
+| `getParentClassName` | ─         | `string`                       | Returns the class's parent's class name as a`string`.    |
+| `super`              | ─         | `ClassObj` or `ClassStaticObj` | Upcasts the object and returns it.                       |
 
 - Dependency injection's procedures :
 
 
-| Name                | Argument 1           | Argument 2         | Output       | Description                                                                                           |
-| --------------------|----------------------|--------------------|--------------|-------------------------------------------------------------------------------------------------------|
-| `addSingleton[T]`   | `ClassObj`           | ─                  | ─            | Adds a singleton object of type`T` to the injection table and uses `T` as key for it.                 |
-| `addSingleton[R,T]` | `typedesc[ClassObj]` | `ClassObj`         | ─            | Adds a singleton object of type`T` to the injection table and uses `R` as key for it.                 |
-| `addInjector[T]`    | `proc(): ClassObj`   | ─                  | ─            | Adds a procedure that returns an object of type`T` to the injectors table and uses `T` as key for it. |
-| `addInjector[R,T]`  | `typedesc[ClassObj]` | `proc(): ClassObj` | ─            | Adds a procedure that returns an object of type`T` to the injectors table and uses `R` as key for it. |
-| `inject[T]`         | `typedesc[ClassObj]` | ─                  | `ClassObj`   | Returns an object of type`T` which exists in the injection tables.                                    |
-| `isInjectable[T]`   | `typedesc[ClassObj]` | ─                  | `bool`       | Returns`true` if an object or a procedure of type `T` exists in the tables otherwise `false`.         |
-| `isSingleton[T]`    | `typedesc[ClassObj]` | ─                  | `bool`       | Returns`true` if an object of type `T` exists in the injection table otherwise `false`.               |
-| `resetInjectTbl`    | ─                    | ─                  | ─            | Resets and removes all entries in the injection and injectors tables.                                 |
+| Name                | Argument 1                                         | Argument 2         | Returns | Description                                                                                           |
+| --------------------- | ---------------------------------------------------- | -------------------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `addSingleton[T]`   | `ClassObj` or `ClassStaticObj`                     | ─                 | ─      | Adds a singleton object of type`T` to the injection table and uses `T` as key for it.                 |
+| `addSingleton[R,T]` | `typedesc[ClassObj]`                               | `ClassObj`         | ─      | Adds a singleton object of type`T` to the injection table and uses `R` as key for it.                 |
+| `addInjector[T]`    | `proc(): ClassObj` or `proc(): ClassStaticObj`     | ─                 | ─      | Adds a procedure that returns an object of type`T` to the injectors table and uses `T` as key for it. |
+| `addInjector[R,T]`  | `typedesc[ClassObj]`                               | `proc(): ClassObj` | ─      | Adds a procedure that returns an object of type`T` to the injectors table and uses `R` as key for it. |
+| `inject[T]`         | `typedesc[ClassObj]` or `typedesc[ClassStaticObj]` | ─                 | `T`     | Returns an object of type`T` which exists in the injection tables.                                    |
+| `isInjectable[T]`   | `typedesc[ClassObj]` or `typedesc[ClassStaticObj]` | ─                 | `bool`  | Returns`true` if an object or a procedure of type `T` exists in the tables otherwise `false`.         |
+| `isSingleton[T]`    | `typedesc[ClassObj]` or `typedesc[ClassStaticObj]` | ─                 | `bool`  | Returns`true` if an object of type `T` exists in the injection table otherwise `false`.               |
+| `resetInjectTbl`    | ─                                                 | ─                 | ─      | Resets and removes all entries in the injection and injectors tables.                                 |
