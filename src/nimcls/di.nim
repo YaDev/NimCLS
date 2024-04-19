@@ -178,5 +178,7 @@ proc resetInjectTbl*() =
         injectionsTblSingleton.clear
         injectionsTbl.clear
     withLock classStaticObjTblLock:
+        for key in staticInjectionsTblSingleton.keys:
+            dealloc staticInjectionsTblSingleton[key]
         staticInjectionsTblSingleton.clear
         staticInjectionsTbl.clear
