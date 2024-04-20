@@ -119,6 +119,10 @@ proc isValidFuncOrProcOrMeth(def, className: NimNode) : bool =
                 if def[3][1][1].kind == nnkIdent:
                     if $def[3][1][1] == $className:
                         return true
+                elif (def[3][1][1].kind == nnkVarTy or def[3][1][1].kind == nnkRefTy) and len(def[3][1][1]) == 1:
+                    if def[3][1][1][0].kind == nnkIdent:
+                        if $def[3][1][1][0] == $className:
+                            return true
     return false
 
 
