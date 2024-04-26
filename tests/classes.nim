@@ -13,10 +13,10 @@ proc test_classes() =
 
     ### Test relationships ###
     proc test_classes_relationships() =
-        assert sevice is ClassObj
-        assert childA is ClassObj
-        assert childB is ClassObj
-        assert childC is ClassObj
+        assert sevice is ref ClassObj
+        assert childA is ref ClassObj
+        assert childB is ref ClassObj
+        assert childC is ref ClassObj
         assert childA is Service
         assert childB is Service
         assert childC is Service

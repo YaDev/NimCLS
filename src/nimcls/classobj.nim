@@ -1,7 +1,8 @@
 type
     ClassObj*
-    = ref object of RootObj
+    = object of RootObj
 
+## ClassObj ##
 method getClassName*(self: ClassObj): string {.base.} =
     return $self.type
 
@@ -15,18 +16,15 @@ method getParentClassName*(self: ClassObj): string {.base.} =
     return $RootObj
 
 
-type
-    ClassStaticObj*
-    = object of RootObj
-
-method getClassName*(self: ClassStaticObj): string {.base.} =
+## Ref ClassObj ##
+method getClassName*(self: ref ClassObj): string {.base.} =
     return $self.type
 
-method getClassCalls*(self: ClassStaticObj): seq[string] {.base.} =
+method getClassCalls*(self: ref ClassObj): seq[string] {.base.} =
     return @["getClassName", "getClassProperties", "getClassCalls", "getParentClassName", "super"]
 
-method getClassProperties*(self: ClassStaticObj): seq[string] {.base.} =
+method getClassProperties*(self: ref ClassObj): seq[string] {.base.} =
     return @[]
 
-method getParentClassName*(self: ClassStaticObj): string {.base.} =
+method getParentClassName*(self: ref ClassObj): string {.base.} =
     return $RootObj

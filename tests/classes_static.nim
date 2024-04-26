@@ -10,9 +10,9 @@ proc test_static_classes() =
 
     ### Test relationships ###
     proc test_classes_relationships() =
-        assert loader is ClassStaticObj
-        assert loaderA is ClassStaticObj
-        assert loaderB is ClassStaticObj
+        assert loader is ClassObj
+        assert loaderA is ClassObj
+        assert loaderB is ClassObj
         assert loaderA is Loader
         assert loaderB is Loader
 
@@ -54,7 +54,7 @@ proc test_static_classes() =
 
     ### Test getParentClassName ###
     proc test_getParentClassName() =
-        assert loader.getParentClassName == "ClassStaticObj"
+        assert loader.getParentClassName == "ClassObj"
         assert loaderA.getParentClassName == "Loader"
         assert loaderB.getParentClassName == "Loader"
     

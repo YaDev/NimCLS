@@ -2,7 +2,6 @@ import nimcls/[clsmacro, classobj, di]
 
 export 
     ClassObj,
-    ClassStaticObj,
     InjectionError,
     addSingleton,
     addInjector,
@@ -13,3 +12,6 @@ export
 
 macro Class*(head, body: untyped): untyped =
     result = processMacro(head, body)
+
+macro Class*(head): untyped =
+    result = processMacro(head)

@@ -86,6 +86,27 @@ callHello()
 
 ### Classes Usage
 
+#### Overview
+
+```nim
+import nimcls
+
+Class MyClass ## type MyClass = ref object of ClassObj
+Class static NextClass ## type NextClass = object of ClassObj
+Class OtherClass(MyClass) ## type MyClass = ref object of MyClass
+Class static OtherNextClass(NextClass) ## type OtherNextClass = object of NextClass
+
+
+Class GenericClass[T]:
+    var value: T
+##
+## Translated to:
+## type GenericClass[T] 
+##    = ref object of ClassObj
+##        value: T
+```
+
+
 There are two types of classes that can be used:
 
 1- Regular Class (Nim's `ref object`)
@@ -244,12 +265,8 @@ Class *MyClass:
 OR
 
 ```nim
-# All regular classes are subclasses of "ClassObj"
+# All classes are subclasses of "ClassObj"
 Class MyClass*(ClassObj):
-   var me: string
-
-# All static classes are subclasses of "ClassStaticObj"
-Class static MyClass*(ClassStaticObj):
    var me: string
 ```
 
@@ -265,9 +282,11 @@ procCall child.super.init
 
 5. **Methods, Procedures and functions**: The class's macro only allows methods, procedures, and functions that utilize the class's object as their **first parameter** within the class's body. By keeping unrelated methods, procedures, and functions outside of classes, we ensure their focus remains on their intended functionality. Placing them within a class may introduce unnecessary complexity, making the code harder to understand and maintain.
 
+6. **Objects casting**: Nim's limitations regarding **non-ref objects** casting, introduce challenges for dependency injection. These limitations elevate the risk of data loss, raise concerns about type safety, complicate debugging, and may result in unexpected output and errors when accessing object fields post-downcasting due to the possibility of encountering invalid addresses.
+
 ## Methods and Procedures
 
-- Each class's object has the following methods :
+- Each class's object has the following methods or procedures :
 
 
 | Name                 | Arguments | Returns                        | Description                                                                        |
@@ -281,13 +300,13 @@ procCall child.super.init
 - Dependency injection's procedures :
 
 
-| Name                | Argument 1                                         | Argument 2         | Returns | Description                                                                                           |
-| --------------------- | ---------------------------------------------------- | -------------------- | --------- | ------------------------------------------------------------------------------------------------------- |
-| `addSingleton[T]`   | `ClassObj` or `ClassStaticObj`                     | ─                 | ─      | Adds a singleton object of type`T` to the injection table and uses `T` as key for it.                 |
-| `addSingleton[R,T]` | `typedesc[ClassObj]`                               | `ClassObj`         | ─      | Adds a singleton object of type`T` to the injection table and uses `R` as key for it.                 |
-| `addInjector[T]`    | `proc(): ClassObj` or `proc(): ClassStaticObj`     | ─                 | ─      | Adds a procedure that returns an object of type`T` to the injectors table and uses `T` as key for it. |
-| `addInjector[R,T]`  | `typedesc[ClassObj]`                               | `proc(): ClassObj` | ─      | Adds a procedure that returns an object of type`T` to the injectors table and uses `R` as key for it. |
-| `inject[T]`         | `typedesc[ClassObj]` or `typedesc[ClassStaticObj]` | ─                 | `T`     | Returns an object of type`T` which exists in the injection tables.                                    |
-| `isInjectable[T]`   | `typedesc[ClassObj]` or `typedesc[ClassStaticObj]` | ─                 | `bool`  | Returns`true` if an object or a procedure of type `T` exists in the tables otherwise `false`.         |
-| `isSingleton[T]`    | `typedesc[ClassObj]` or `typedesc[ClassStaticObj]` | ─                 | `bool`  | Returns`true` if an object of type `T` exists in the injection table otherwise `false`.               |
-| `resetInjectTbl`    | ─                                                 | ─                 | ─      | Resets and removes all entries in the injection and injectors tables.                                 |
+| Name                | Argument 1                                       | Argument 2             | Returns | Description                                                                                           |
+|---------------------|--------------------------------------------------|------------------------|---------|-------------------------------------------------------------------------------------------------------|
+| `addSingleton[T]`   | `ClassObj` or `ref ClassObj`                     | ─                      | ─       | Adds a singleton object of type`T` to the injection table and uses `T` as key for it.                 |
+| `addSingleton[R,T]` | `typedesc[ref ClassObj]`                         | `ref ClassObj`         | ─       | Adds a singleton object of type`T` to the injection table and uses `R` as key for it.                 |
+| `addInjector[T]`    | `proc(): ClassObj` or `proc(): ref ClassObj`     | ─                      | ─       | Adds a procedure that returns an object of type`T` to the injectors table and uses `T` as key for it. |
+| `addInjector[R,T]`  | `typedesc[ref ClassObj]`                         | `proc(): ref ClassObj` | ─       | Adds a procedure that returns an object of type`T` to the injectors table and uses `R` as key for it. |
+| `inject[T]`         | `typedesc[ClassObj]` or `typedesc[ref ClassObj]` | ─                      | `T`     | Returns an object of type`T` which exists in the injection tables.                                    |
+| `isInjectable[T]`   | `typedesc[ClassObj]` or `typedesc[ref ClassObj]` | ─                      | `bool`  | Returns`true` if an object or a procedure of type `T` exists in the tables otherwise `false`.         |
+| `isSingleton[T]`    | `typedesc[ClassObj]` or `typedesc[ref ClassObj]` | ─                      | `bool`  | Returns`true` if an object of type `T` exists in the injection table otherwise `false`.               |
+| `resetInjectTbl`    | ─                                                | ─                      | ─       | Resets and removes all entries in the injection and injectors tables.                                 |

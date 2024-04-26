@@ -77,3 +77,14 @@ Class static *SAB:
     var number*: int = 2
 Class static *SAC:
     var number*: int = 3
+
+
+Class *G1[T]:
+    var value: T
+
+Class G2*[R, T](G1[T]):
+    var next: R
+
+Class G3*[R : int, T, Y: string | float](G2[R, T]):
+    var final: Y
+

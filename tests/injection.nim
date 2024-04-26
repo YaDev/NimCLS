@@ -164,8 +164,8 @@ proc test_classes_signature_injection() =
     proc test_injection_param(objAA: AA = inject(AA), objAB: AB = inject(AB))  =
         let injectedAA = objAA
         let injectedAB = objAB
-        assert injectedAA.type is ClassObj
-        assert injectedAB.type is ClassObj
+        assert injectedAA.type is ref ClassObj
+        assert injectedAB.type is ref ClassObj
         assert injectedAA.type is AA
         assert injectedAB.type is AB
         assert injectedAA.getClassProperties.len == 1
@@ -192,44 +192,11 @@ proc test_classes_signature_injection() =
             assert casuedError
             casuedError = false
 
-            ## Inject ClassObj ##
-            try:
-                let obj = inject(ClassObj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-        
         test_inject_exceptions()
 
 
 
         proc test_addInjector_exceptions() =
-            ## addInjector 1 ClassObj ##
-            try:
-                addInjector(
-                    proc() : ClassObj =
-                        return AA()
-                )
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
-            ## addInjector 2 ClassObj ##
-            try:
-                addInjector( ClassObj,
-                    proc() : AA =
-                        return AA()
-                )
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
 
             ## addInjector 2 not a subclass ##
             try:
@@ -261,26 +228,6 @@ proc test_classes_signature_injection() =
 
 
         proc test_addSingleton_exceptions() =
-            ## addSingleton 1 ClassObj ##
-            try:
-                let obj = ClassObj()
-                addSingleton(obj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
-            ## addSingleton 2 ClassObj ##
-            try:
-                let obj = AA()
-                addSingleton(ClassObj, obj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
 
             ## addSingleton 2 not a subclass ##
             try:
@@ -305,30 +252,6 @@ proc test_classes_signature_injection() =
 
 
         test_addSingleton_exceptions()
-
-
-
-
-        ## Checking isInjectable using ClassObj ##
-        proc test_isInjectable_isSingleton_exceptions() =
-            try:
-                let val = isInjectable(ClassObj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
-            ## Checking isSingleton using ClassObj ##
-            try:
-                let val = isSingleton(ClassObj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-        
-        test_isInjectable_isSingleton_exceptions()
 
 
 

@@ -141,8 +141,8 @@ proc test_classes_signature_injection() =
     proc test_injection_param(objSAA: SAA = inject(SAA), objSAB: SAB = inject(SAB))  =
         var injectedSAA = objSAA
         var injectedSAB = objSAB
-        assert injectedSAA.type is ClassStaticObj
-        assert injectedSAB.type is ClassStaticObj
+        assert injectedSAA.type is ClassObj
+        assert injectedSAB.type is ClassObj
         assert injectedSAA.type is SAA
         assert injectedSAB.type is SAB
         assert injectedSAA.getClassProperties.len == 1
@@ -169,77 +169,8 @@ proc test_classes_signature_injection() =
                 casuedError = true
             
             assert casuedError
-            casuedError = false
-
-            ## Inject ClassStaticObj ##
-            try:
-                let obj = inject(ClassStaticObj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
         
         test_inject_exceptions()
-
-
-
-        proc test_addInjector_exceptions() =
-            ## addInjector 1 ClassStaticObj ##
-            try:
-                addInjector(
-                    proc() : ClassStaticObj =
-                        return SAA()
-                )
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
-
-        test_addInjector_exceptions()
-
-
-
-        proc test_addSingleton_exceptions() =
-            ## addSingleton 1 ClassStaticObj ##
-            try:
-                let obj = ClassStaticObj()
-                addSingleton(obj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
-        test_addSingleton_exceptions()
-
-
-
-
-        ## Checking isInjectable using ClassStaticObj ##
-        proc test_isInjectable_isSingleton_exceptions() =
-            try:
-                let val = isInjectable(ClassStaticObj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-
-            ## Checking isSingleton using ClassObj ##
-            try:
-                let val = isSingleton(ClassStaticObj)
-            except InjectionError:
-                casuedError = true
-            
-            assert casuedError
-            casuedError = false
-        
-        test_isInjectable_isSingleton_exceptions()
-
-
 
 
     test_injection_exceptions()
