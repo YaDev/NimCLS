@@ -1,5 +1,5 @@
 packageName   = "nimcls"
-version       = "2.1.2"
+version       = "3.0.0"
 author        = "Yaser A"
 description   = "Classes and dependency injection for Nim."
 license       = "MIT"
@@ -13,5 +13,6 @@ task test, "Run all tests":
   withDir("tests"):
     exec "nim c -r ./classes.nim"
     exec "nim c -r ./classes_static.nim"
+    exec "nim c -r ./classes_generic.nim"
     exec "nim c -r ./injection.nim"
     exec "nim c -r ./injection_static.nim"
