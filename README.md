@@ -91,10 +91,12 @@ callHello()
 ```nim
 import nimcls
 
+# ClassObj is RootObj
 Class MyClass ## type MyClass = ref object of ClassObj
 Class static NextClass ## type NextClass = object of ClassObj
 Class OtherClass(MyClass) ## type MyClass = ref object of MyClass
 Class static OtherNextClass(NextClass) ## type OtherNextClass = object of NextClass
+Class TryGeneric[K,V] ## type TryGeneric[K,V] = ref object of ClassObj
 
 
 Class GenericClass[T]:
