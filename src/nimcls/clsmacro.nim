@@ -290,25 +290,32 @@ proc isGeneric(head : NimNode): bool {.compileTime.} =
     else:
         return false
 
-proc processMacro*(head: NimNode): NimNode =
-    if isGeneric(head):
-        error("Incomplete generic class's definition!")
-    let isStatic: bool = isItStatic(head)
-    let isExported: bool = isClassExported(head, isStatic)
+proc processMacro*(head: NimNode): NimNode {.compileTime.} =
+    let 
+        isGeneric: bool = isGeneric(head)
+        isStatic: bool = isItStatic(head)
+        isExported: bool = isClassExported(head, isStatic, isGeneric)
     var superClass: NimNode
     if isStatic:
-        superClass = getParentClassStatic(head)
+        superClass = getParentClassStatic(head, isGeneric)
     else:
-        superClass = getParentClass(head, isExported)
+        superClass = getParentClass(head, isExported, isGeneric)
     let 
-        className: NimNode = getClassNameNode(head, isExported, isStatic)
+        className: NimNode = getClassNameNode(head, isExported, isStatic, isGeneric)
         classDef: NimNode = genClassDef(className, superClass, isExported, isStatic)
+    if isGeneric:
+        var genParam: NimNode = genGenericParams(head)
+        if len(genParam) < 1 :
+            error("Invalid class's syntax")
+        for i in countup(0, len(classDef[0]) - 1 ):
+            if classDef[0][i].kind == nnkEmpty:
+                classDef[0][i] = genParam
     let 
         props: seq[string] = @[]
         callsNames: seq[string] = @[]
     var propsLit: NimNode =  newLit(props)
     var methodsNamesLit: NimNode = newLit(callsNames)
-    result = buildClass(classDef, superClass, className, methodsNamesLit, propsLit)
+    result = buildClass(classDef, superClass, className, methodsNamesLit, propsLit, isGeneric)
 
 proc filterBodyNodes(body: NimNode, bodyNodes: var seq[NimNode], variablesSec: var seq[NimNode], methodsProcFuncNames: var HashSet[string] ) {.compileTime.} =
     for elem in body:
@@ -353,7 +360,7 @@ proc filterBodyNodes(body: NimNode, bodyNodes: var seq[NimNode], variablesSec: v
             else: error("Only methods, procedures, functions and variables are allowed in classes' body")
 
 
-proc processMacro*(head, body: NimNode): NimNode =
+proc processMacro*(head, body: NimNode): NimNode {.compileTime.} =
     var
         bodyNodes: seq[NimNode] = @[]
         variablesSec: seq[NimNode] = @[]
