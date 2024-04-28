@@ -68,7 +68,7 @@ Class Parent:
         echo "Hello!! Parent"
 
 Class Child(Parent):
-    proc getValue(self: Child): int =
+    proc getNewValue(self: Child): int =
         return self.value + 10
     method hello(self: Child)  =
         echo "Hello!! Child"
