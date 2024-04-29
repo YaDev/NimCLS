@@ -5,6 +5,7 @@ Classes' macro and a lightweight dependency injection library for the Nim progra
 ## Features
 
 - **Classes**: Create Nim objects using a simple syntax, similar to Python.
+- **Interfaces**: Define interfaces using a concise syntax.
 - **Debugging and Inspection Methods**: Make development easier with methods that help debug and inspect class objects.
 - **Superclass Invocation**: Effortlessly call the super class's methods, procedures and functions of an object.
 - **Dependency Injection**: Easily inject dependencies into your code and reduce boilerplate code.
@@ -154,6 +155,23 @@ let person = Person(name: "Other Name")
 - object types are typically used for small, immutable data structures where you want value semantics, such as structs in other programming languages.
 - They are allocated on the stack, and their memory is automatically deallocated when they go out of scope.
 
+### Interface Usage
+
+```nim
+import nimcls
+
+Interface IRunner:
+    method run(self: IRunner)
+    method getFilePath(self: IRunner): string
+    method isRunning(self: IRunner): bool
+```
+
+#### Macro Rules:
+1. An interface cannot have a parent class/object.
+2. An interface cannot be a generic object.
+2. An interface must have at least one method.
+3. Only ***methods*** can be added to the interface.
+
 ### Injection Usage
 
 There are two ways to register an injection:
@@ -297,7 +315,7 @@ procCall child.super.init
 | `getClassCalls`      | ─         | `seq[string]`                  | Returns the class's procedures, functions and methods in a sequence of`string`.    |
 | `getClassProperties` | ─         | `seq[string]`                  | Returns the class's properties in a sequence of`string`.                           |
 | `getParentClassName` | ─         | `string`                       | Returns the class's parent's class name as a`string`.                              |
-| `super`              | ─         | `ClassObj` or `ClassStaticObj` | Upcasts the object and returns it.                                                 |
+| `super`              | ─         | `ClassObj`                     | Upcasts the object and returns it.                                                 |
 
 - Dependency injection's procedures :
 
