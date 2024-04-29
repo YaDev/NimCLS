@@ -10,8 +10,11 @@ export
     isSingleton,
     resetInjectTbl
 
+macro Interface*(head, body: untyped): untyped =
+    result = createInterface(head, body)
+
 macro Class*(head, body: untyped): untyped =
-    result = processMacro(head, body)
+    result = createClass(head, body)
 
 macro Class*(head): untyped =
-    result = processMacro(head)
+    result = createClass(head)

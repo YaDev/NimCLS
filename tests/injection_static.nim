@@ -11,21 +11,21 @@ proc test_classes_signature_injection() =
 
     ### Test signature ###
     proc test_signature() =
-        assert aa.type.signature is int
-        assert ab.type.signature is int
-        assert ac.type.signature is int
+        assert aa.type.getTypeSignature is int
+        assert ab.type.getTypeSignature is int
+        assert ac.type.getTypeSignature is int
 
-        assert aa.type.signature >= 99_999
-        assert ab.type.signature >= 99_999
-        assert ac.type.signature >= 99_999
+        assert aa.type.getTypeSignature >= 99_999
+        assert ab.type.getTypeSignature >= 99_999
+        assert ac.type.getTypeSignature >= 99_999
 
-        assert aa.type.signature == SAA.signature
-        assert ab.type.signature == SAB.signature
-        assert ac.type.signature == SAC.signature
+        assert aa.type.getTypeSignature == SAA.getTypeSignature
+        assert ab.type.getTypeSignature == SAB.getTypeSignature
+        assert ac.type.getTypeSignature == SAC.getTypeSignature
 
-        assert aa.type.signature != SAB.signature
-        assert ab.type.signature != SAC.signature
-        assert ac.type.signature != SAA.signature
+        assert aa.type.getTypeSignature != SAB.getTypeSignature
+        assert ab.type.getTypeSignature != SAC.getTypeSignature
+        assert ac.type.getTypeSignature != SAA.getTypeSignature
 
     test_signature()
 

@@ -7,9 +7,6 @@ import
 
 import ./classobj
 
-macro ClassErrorMacro(msg: string): untyped =
-    error(msg.strVal)
-
 var signaturesSet {.compileTime.} : IntSet = initIntSet()
 
 proc genSignature() : int =
@@ -68,6 +65,10 @@ proc buildClass*(classDef, superClass, className, methodsNamesLit, propsLit: Nim
         superClassNameLit: NimNode = newLit(superClassIdent.strVal)
     result = quote("@") do:
         @classDef
+
+        proc getTypeSignature*(classType: typedesc[@className]): int =
+            return @signatureLit
+    
         when (@superClassIdent is ref ClassObj) or (@superClassIdent is ClassObj) or (@isGenericLit):
 
             method getClassName*(self: @className): string =
@@ -119,25 +120,20 @@ proc buildClass*(classDef, superClass, className, methodsNamesLit, propsLit: Nim
                     else:
                         return @superClass(self)
 
-            proc signature*(classType: typedesc[@className]): int =
-                return @signatureLit
-        else:
-            ClassErrorMacro(@superClassError)
     if isGeneric:
         var genericParam: NimNode = buildGenericParams(classDef)
         var bracketExpr: NimNode = buildBracketExpr(genericParam, className)
-        for i in countup(0, len(result[1][0][1]) - 1):
-            var elem = result[1][0][1][i]
-            if elem.kind == nnkMethodDef or elem.kind == nnkProcDef :
+        result[1][2] = genericParam
+        var newnnkBracketExpr = nnkBracketExpr.newNimNode
+        newnnkBracketExpr.add(ident("typedesc"))
+        newnnkBracketExpr.add(bracketExpr)
+        result[1][3][1][1] = newnnkBracketExpr
+        for i in countup(0, len(result[2][0][1]) - 1):
+            var elem = result[2][0][1][i]
+            if elem.kind == nnkMethodDef :
                 elem[2] = genericParam
-                if elem.kind == nnkMethodDef:
-                     elem[3][1][1] = bracketExpr
-                     elem[4] = newEmptyNode()
-                     var procNode: NimNode = nnkProcDef.newNimNode
-                     elem.copyChildrenTo(procNode)
-                     result[1][0][1][i] = procNode
-                else:
-                    var newnnkBracketExpr = nnkBracketExpr.newNimNode
-                    newnnkBracketExpr.add(ident("typedesc"))
-                    newnnkBracketExpr.add(bracketExpr)
-                    elem[3][1][1] = newnnkBracketExpr
+                elem[3][1][1] = bracketExpr
+                elem[4] = newEmptyNode()
+                var procNode: NimNode = nnkProcDef.newNimNode
+                elem.copyChildrenTo(procNode)
+                result[2][0][1][i] = procNode

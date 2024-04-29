@@ -9,7 +9,7 @@ const
     SUBCLASS_2_ERROR: string = " and cannot be added to the injection table!!!"
     NOT_FOUND_ERROR_1: string = "Could not find an injection for the class: "
 
-type InjectionError* = object of ValueError
+type InjectionError* = object of KeyError
 
 ## Injection & injectors tables
 var
@@ -40,16 +40,16 @@ proc addSingleton*[T : ref ClassObj | ClassObj](obj : T) =
     ##
     when T is ref ClassObj:
         withLock classRefObjTblLock:
-            if injectorsRefTbl.hasKey(T.signature):
+            if injectorsRefTbl.hasKey(T.getTypeSignature):
                 raise newException(InjectionError, DUPLICATE_ERROR_1 & $T)
-            injectionsRefTblSingleton[T.signature] = obj
+            injectionsRefTblSingleton[T.getTypeSignature] = obj
     else:
         withLock classObjTblLock:
-            if injectorsTbl.hasKey(T.signature):
+            if injectorsTbl.hasKey(T.getTypeSignature):
                 raise newException(InjectionError, DUPLICATE_ERROR_1 & $T)
-            if injectionsTblSingleton.hasKey(T.signature) :
-                dealloc injectionsTblSingleton[T.signature] 
-            injectionsTblSingleton[T.signature] = copyStaticObject(obj)
+            if injectionsTblSingleton.hasKey(T.getTypeSignature) :
+                dealloc injectionsTblSingleton[T.getTypeSignature] 
+            injectionsTblSingleton[T.getTypeSignature] = copyStaticObject(obj)
 
 
 proc addSingleton*[T, R : ref ClassObj](clsDesc : typedesc[R], obj : T) =
@@ -61,9 +61,9 @@ proc addSingleton*[T, R : ref ClassObj](clsDesc : typedesc[R], obj : T) =
     ##
     when T is R :
         withLock classRefObjTblLock:
-            if injectorsRefTbl.hasKey(R.signature):
+            if injectorsRefTbl.hasKey(R.getTypeSignature):
                 raise newException(InjectionError, DUPLICATE_ERROR_1 & $R)
-            injectionsRefTblSingleton[R.signature] = obj
+            injectionsRefTblSingleton[R.getTypeSignature] = obj
     else:
         raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
 
@@ -77,14 +77,14 @@ proc addInjector*[T: ref ClassObj | ClassObj](builder : proc(): T) =
     ##
     when T is ref ClassObj:
         withLock classRefObjTblLock:
-            if injectionsRefTblSingleton.hasKey(T.signature):
+            if injectionsRefTblSingleton.hasKey(T.getTypeSignature):
                 raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
-            injectorsRefTbl[T.signature] = proc(): ref ClassObj = result = builder()
+            injectorsRefTbl[T.getTypeSignature] = proc(): ref ClassObj = result = builder()
     else:
         withLock classObjTblLock:
-            if injectionsTblSingleton.hasKey(T.signature):
+            if injectionsTblSingleton.hasKey(T.getTypeSignature):
                 raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
-            injectorsTbl[T.signature] 
+            injectorsTbl[T.getTypeSignature] 
                 = proc(): pointer =
                     var output = builder()
                     return addr(output)
@@ -99,9 +99,9 @@ proc addInjector*[T, R: ref ClassObj](clsDesc : typedesc[R], builder : proc(): T
     ##
     when T is R :
         withLock classRefObjTblLock:
-            if injectionsRefTblSingleton.hasKey(R.signature):
+            if injectionsRefTblSingleton.hasKey(R.getTypeSignature):
                 raise newException(InjectionError, DUPLICATE_ERROR_2 & $R)
-            injectorsRefTbl[R.signature] = proc(): ref ClassObj = result = builder()
+            injectorsRefTbl[R.getTypeSignature] = proc(): ref ClassObj = result = builder()
     else:
         raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
 
@@ -115,19 +115,19 @@ proc inject*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : T =
     ##
     when T is ref ClassObj :
         withLock classRefObjTblLock:
-            if injectionsRefTblSingleton.hasKey(clsDesc.signature):
-                return T(injectionsRefTblSingleton[clsDesc.signature])
-            elif injectorsRefTbl.hasKey(clsDesc.signature) :
-                let callProc = injectorsRefTbl[clsDesc.signature]
+            if injectionsRefTblSingleton.hasKey(clsDesc.getTypeSignature):
+                return T(injectionsRefTblSingleton[clsDesc.getTypeSignature])
+            elif injectorsRefTbl.hasKey(clsDesc.getTypeSignature) :
+                let callProc = injectorsRefTbl[clsDesc.getTypeSignature]
                 return T(callProc())
             else:
                 raise newException(InjectionError, NOT_FOUND_ERROR_1 & $clsDesc)
     else:
         withLock classObjTblLock:
-            if injectionsTblSingleton.hasKey(clsDesc.signature):
-                return cast[T](cast[ptr T](injectionsTblSingleton[clsDesc.signature])[])
-            elif injectorsTbl.hasKey(clsDesc.signature) :
-                let callProc = injectorsTbl[clsDesc.signature]
+            if injectionsTblSingleton.hasKey(clsDesc.getTypeSignature):
+                return cast[T](cast[ptr T](injectionsTblSingleton[clsDesc.getTypeSignature])[])
+            elif injectorsTbl.hasKey(clsDesc.getTypeSignature) :
+                let callProc = injectorsTbl[clsDesc.getTypeSignature]
                 return cast[T](cast[ptr T](callProc())[])
             else:
                 raise newException(InjectionError, NOT_FOUND_ERROR_1 & $clsDesc)
@@ -137,10 +137,10 @@ proc isInjectable*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : bool =
     ##
     when T is ref ClassObj:
         withLock classRefObjTblLock:
-            return injectionsRefTblSingleton.hasKey(clsDesc.signature) or injectorsRefTbl.hasKey(clsDesc.signature)
+            return injectionsRefTblSingleton.hasKey(clsDesc.getTypeSignature) or injectorsRefTbl.hasKey(clsDesc.getTypeSignature)
     else:
         withLock classObjTblLock:
-            return injectionsTblSingleton.hasKey(clsDesc.signature) or injectorsTbl.hasKey(clsDesc.signature)
+            return injectionsTblSingleton.hasKey(clsDesc.getTypeSignature) or injectorsTbl.hasKey(clsDesc.getTypeSignature)
 
 
 proc isSingleton*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : bool =
@@ -148,10 +148,10 @@ proc isSingleton*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : bool =
     ##
     when T is ref ClassObj :
         withLock classRefObjTblLock:
-            return injectionsRefTblSingleton.hasKey(clsDesc.signature)
+            return injectionsRefTblSingleton.hasKey(clsDesc.getTypeSignature)
     else:
         withLock classObjTblLock:
-            return injectionsTblSingleton.hasKey(clsDesc.signature)
+            return injectionsTblSingleton.hasKey(clsDesc.getTypeSignature)
 
 proc resetInjectTbl*() =
     ## Resets and removes all entries in the injection and injectors tables.
