@@ -1,6 +1,6 @@
 # NimCLS - Nim Classes & Dependency Injection Library
 
-Classes' macro and a lightweight dependency injection library for the Nim programming language, designed to help easily create and manage dependency injection by using classes.
+Classes' macro, interfaces' macro and a lightweight dependency injection library for the Nim programming language, designed to help easily create and manage dependency injection by using classes and interfaces.
 
 ## Features
 
