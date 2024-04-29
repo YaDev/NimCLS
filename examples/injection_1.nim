@@ -1,7 +1,7 @@
 import ../src/nimcls
 
-Class IService:
-    method run(self: IService) {.base.} = raise newException(Exception, "Not implemented")
+Interface IService:
+    method run(self: IService)
 
 Class ServiceImpl(IService):
     method run(self: ServiceImpl)  = 

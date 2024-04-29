@@ -8,6 +8,7 @@
 | [basic_static.nim](https://github.com/YaDev/NimCLS/blob/master/examples/basic_static.nim)   | A basic example for creating a static class.                                |
 | [inheritance_1.nim](https://github.com/YaDev/NimCLS/blob/master/examples/inheritance_1.nim) | A basic example for creating a class and a subclass.                        |
 | [generic.nim](https://github.com/YaDev/NimCLS/blob/master/examples/generic.nim)             | An example for creating generic classes.                                    |
+| [interface.nim](https://github.com/YaDev/NimCLS/blob/master/examples/interface.nim)         | An example for creating nad using an interface.                             |
 | [inheritance_2.nim](https://github.com/YaDev/NimCLS/blob/master/examples/inheritance_2.nim) | A basic example for creating a static class and a subclass.                 |
 | [injection_1.nim](https://github.com/YaDev/NimCLS/blob/master/examples/injection_1.nim)     | An example for dependency injection using `addSingleton`.                   |
 | [injection_2.nim](https://github.com/YaDev/NimCLS/blob/master/examples/injection_2.nim)     | An example for dependency injection using `addSingleton` and `addInjector`. |
