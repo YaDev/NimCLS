@@ -291,7 +291,16 @@ proc isGeneric*(head : NimNode): bool {.compileTime.} =
 proc updateInterfaceMethod*(methodNode: NimNode) {.compileTime.} =
     var pragma = nnkPragma.newNimNode
     pragma.add(ident("base"))
-    methodNode[4] = pragma
+    if methodNode[4].kind == nnkPragma:
+        var hasBase: bool = false
+        for elem in methodNode[4]:
+            if elem.kind == nnkIdent:
+                if $elem == "base":
+                    hasBase = true
+        if not hasBase:
+            methodNode[4].add(ident("base"))
+    elif methodNode[4].kind == nnkEmpty:
+        methodNode[4] = pragma
     var stmtList: NimNode = nnkStmtList.newNimNode
     var raiseStmt: NimNode = nnkRaiseStmt.newNimNode
     var callNode: NimNode = nnkCall.newNimNode
