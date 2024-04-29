@@ -1,5 +1,5 @@
 packageName   = "nimcls"
-version       = "4.0.0"
+version       = "4.0.1"
 author        = "Yaser A"
 description   = "Classes and dependency injection for Nim."
 license       = "MIT"
