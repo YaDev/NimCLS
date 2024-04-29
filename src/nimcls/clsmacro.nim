@@ -18,7 +18,7 @@ proc createInterface*(head, body: NimNode): NimNode {.compileTime.} =
     if isGeneric(head):
         error("An interface cannot be a generic object!")
 
-    if head.kind != nnkPostfix and head.kind != nnkIdent:
+    if head.kind != nnkPrefix and head.kind != nnkIdent:
         error("An interface cannot have a parent!")
 
     let isExported: bool = isClassExported(head, isStatic, isGeneric)

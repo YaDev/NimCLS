@@ -406,7 +406,7 @@ static:
     ## 
 
 
-    block: # Check variables
+    block: # Check Interfaces
         let ast: NimNode = parseExpr("""
         Interface IClass:
             method test1(i: IClass)
@@ -414,6 +414,37 @@ static:
             method test3(i: IClass, next: float): string
         """)
         let output: NimNode = createInterface(ast[1], ast[2])
+        assert output.kind == nnkStmtList
+        assert output[0].kind == nnkTypeSection
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkIdent
+        assert $output[0][0][0] == "IClass"
+        assert output[len(output) - 1].kind == nnkMethodDef
+        assert output[len(output) - 2].kind == nnkMethodDef
+        assert output[len(output) - 3].kind == nnkMethodDef
+        assert output[len(output) - 3][0].kind == nnkIdent
+        assert $output[len(output) - 1][0] == "test3"
+        assert $output[len(output) - 2][0] == "test2"
+        assert $output[len(output) - 3][0] == "test1"
+        assert output[len(output) - 1][4].kind == nnkPragma
+        assert $output[len(output) - 1][4][0] == "base"
+        assert output[len(output) - 1][6].kind == nnkStmtList
+        assert output[len(output) - 1][6][0].kind == nnkRaiseStmt
+
+    block: # Check Interfaces
+        let ast: NimNode = parseExpr("""
+        Interface *IClass:
+            method test1(i: IClass)
+            method test2(i: IClass, value: int): int
+            method test3(i: IClass, next: float): string
+        """)
+        let output: NimNode = createInterface(ast[1], ast[2])
+        assert output.kind == nnkStmtList
+        assert output[0].kind == nnkTypeSection
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkPostfix
+        assert $output[0][0][0][1] == "IClass"
+        assert $output[0][0][2][0][1][0] == "ClassObj"
         assert output[len(output) - 1].kind == nnkMethodDef
         assert output[len(output) - 2].kind == nnkMethodDef
         assert output[len(output) - 3].kind == nnkMethodDef
