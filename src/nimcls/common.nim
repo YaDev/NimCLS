@@ -248,10 +248,18 @@ proc isValidFuncOrProcOrMeth*(def, className: NimNode) : bool {.compileTime.} =
                     elif def[3][1][1][0].kind == nnkBracketExpr:
                         if $def[3][1][1][0][0] == $className:
                             return true
-                elif (def[3][1][1].kind == nnkBracketExpr) :
+                elif (def[3][1][1].kind == nnkBracketExpr):
                      if def[3][1][1][0].kind == nnkIdent:
                         if $def[3][1][1][0] == $className:
                             return true
+                        elif $def[3][1][1][0] == "typedesc":
+                            if def[3][1][1][1].kind == nnkIdent:
+                                if $def[3][1][1][1] == $className:
+                                    return true
+                            elif def[3][1][1][1].kind == nnkBracketExpr:
+                                if $def[3][1][1][1][0] == $className:
+                                    return true
+
     return false
 
 proc isGeneric*(head : NimNode): bool {.compileTime.} =

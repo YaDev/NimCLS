@@ -387,7 +387,7 @@ static:
     ## 
     ## 
 
-    block: # Check variables
+    block: # Check methods
         let ast: NimNode = parseExpr("""
         Class static MyClass:
             method test(s: MyClass) = echo "My Class"
@@ -395,6 +395,53 @@ static:
         let output: NimNode = createClass(ast[1], ast[2])
         assert output[0][0][2].kind == nnkObjectTy
         assert output[3].kind == nnkMethodDef
+        assert output[3][0].kind == nnkIdent
+        assert $output[3][0] == "test"
+
+
+    block: # Check methods
+        let ast: NimNode = parseExpr("""
+        Class MyClass:
+            method test(s: MyClass) = echo "My Class"
+        """)
+        let output: NimNode = createClass(ast[1], ast[2])
+        assert output[0][0][2].kind == nnkRefTy
+        assert output[3].kind == nnkMethodDef
+        assert output[3][0].kind == nnkIdent
+        assert $output[3][0] == "test"
+
+
+    block: # Check methods
+        let ast: NimNode = parseExpr("""
+        Class MyClass[T]:
+            method test[T](s: MyClass[T]) = echo "My Class"
+        """)
+        let output: NimNode = createClass(ast[1], ast[2])
+        assert output[0][0][2].kind == nnkRefTy 
+        assert output[3].kind == nnkMethodDef
+        assert output[3][0].kind == nnkIdent
+        assert $output[3][0] == "test"
+
+    block: # Check methods
+        let ast: NimNode = parseExpr("""
+        Class static MyClass[T]:
+            method test[T](s: MyClass[T]) = echo "My Class"
+        """)
+        let output: NimNode = createClass(ast[1], ast[2])
+        assert output[0][0][2].kind == nnkObjectTy
+        assert output[3].kind == nnkMethodDef
+        assert output[3][0].kind == nnkIdent
+        assert $output[3][0] == "test"
+
+        
+    block: # Check proc
+        let ast: NimNode = parseExpr("""
+        Class MyClass:
+            proc test(s: typedesc[MyClass]) = echo "My Class"
+        """)
+        let output: NimNode = createClass(ast[1], ast[2])
+        assert output[0][0][2].kind == nnkRefTy
+        assert output[3].kind == nnkProcDef
         assert output[3][0].kind == nnkIdent
         assert $output[3][0] == "test"
 
