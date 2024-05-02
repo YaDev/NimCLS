@@ -241,7 +241,7 @@ proc isValidFuncOrProcOrMeth*(def, className: NimNode) : bool {.compileTime.} =
                 if def[3][1][1].kind == nnkIdent:
                     if $def[3][1][1] == $className:
                         return true
-                elif (def[3][1][1].kind == nnkVarTy or def[3][1][1].kind == nnkRefTy) and len(def[3][1][1]) == 1:
+                elif (def[3][1][1].kind == nnkVarTy or def[3][1][1].kind == nnkRefTy or def[3][1][1].kind == nnkPtrTy) and len(def[3][1][1]) == 1:
                     if def[3][1][1][0].kind == nnkIdent:
                         if $def[3][1][1][0] == $className:
                             return true
@@ -338,6 +338,7 @@ proc filterBodyNodes*(body: NimNode, bodyNodes: var seq[NimNode], variablesSec: 
             of nnkCommentStmt: bodyNodes.add(elem)
             of nnkConstSection: error("'const' cannot be used for classes' properties !!")
             of nnkLetSection: error("'let' cannot be used for classes' properties !!")
+            of nnkWhenStmt: bodyNodes.add(elem)
             of nnkMethodDef:
                 var methodName: string
                 if elem[0].kind == nnkPostfix:
@@ -368,6 +369,7 @@ proc filterInterfaceBodyNodes*(body: NimNode, bodyNodes: var seq[NimNode], metho
     for elem in body:
         case elem.kind:
             of nnkCommentStmt: bodyNodes.add(elem)
+            of nnkWhenStmt: bodyNodes.add(elem)
             of nnkMethodDef:
                 var methodName: string
                 if elem[0].kind == nnkPostfix:
@@ -377,3 +379,50 @@ proc filterInterfaceBodyNodes*(body: NimNode, bodyNodes: var seq[NimNode], metho
                 methodsNames.incl(methodName)
                 bodyNodes.add(elem)
             else: error("Only methods are allowed in interface's body")
+
+proc isVariablesWhen*(whenNode: NimNode): bool {.compileTime.} =
+    for branch in whenNode:
+        if branch[len(branch) - 1].kind == nnkStmtList:
+            for elem in branch[len(branch) - 1]:
+                if elem.kind != nnkVarSection:
+                    return false
+    return true
+
+proc extractWhenVar*(bodyNodes: var seq[NimNode]): seq[NimNode] {.compileTime.} =
+    var whenRecList: seq[NimNode] = @[]
+    var whenIdx: seq[int] = @[]
+    for i in countup(0, len(bodyNodes) - 1):
+        if bodyNodes[i].kind == nnkWhenStmt:
+            if isVariablesWhen(bodyNodes[i]):
+                whenIdx.add(i)
+    
+    for j in countdown(len(whenIdx) - 1, 0):
+        let idx = whenIdx[j]
+        var recWhen: NimNode = nnkRecWhen.newNimNode
+        for branch in bodyNodes[idx]:
+            var newBranch = branch.kind.newNimNode
+            for elem in branch:
+                var recList = nnkRecList.newNimNode
+                if elem.kind == nnkStmtList:
+                    for varSec in elem:
+                        for variable in varSec:
+                            recList.add(variable)
+                    newBranch.add(recList)
+                else:
+                    newBranch.add(elem)
+            recWhen.add(newBranch)
+        whenRecList.add(recWhen)
+        bodyNodes.delete(idx)
+        
+    return whenRecList
+
+proc isValidClassWhen*(whenNode: NimNode, validNodes: var seq[NimNode]): bool {.compileTime.} =
+    for branch in whenNode:
+        if branch[len(branch) - 1].kind == nnkStmtList:
+            for elem in branch[len(branch) - 1]:
+                case elem.kind:
+                    of nnkMethodDef: validNodes.add(elem)
+                    of nnkFuncDef: validNodes.add(elem)
+                    of nnkProcDef: validNodes.add(elem)
+                    else: return false
+    return true

@@ -106,6 +106,7 @@ proc createClass*(head, body: NimNode): NimNode {.compileTime.} =
             if classDef[0][i].kind == nnkEmpty:
                 classDef[0][i] = genParam
 
+    var recSecList: NimNode
     if isStatic:
         if classDef[0][2][2].kind == nnkEmpty:
             for sec in variablesSec:
@@ -116,6 +117,8 @@ proc createClass*(head, body: NimNode): NimNode {.compileTime.} =
             for sec in variablesSec:
                 for variable in sec:
                     classDef[0][2][2].add(variable)
+
+        recSecList = classDef[0][2][2]
     else:
         if classDef[0][2][0][2].kind == nnkEmpty:
             for sec in variablesSec:
@@ -126,11 +129,15 @@ proc createClass*(head, body: NimNode): NimNode {.compileTime.} =
             for sec in variablesSec:
                 for variable in sec:
                     classDef[0][2][0][2].add(variable)
+
+        recSecList = classDef[0][2][0][2]
     var props: seq[string]
-    if isStatic:
-        props = buildClassPropertiesSeq(classDef[0][2][2])
-    else:
-        props = buildClassPropertiesSeq(classDef[0][2][0][2])
+    props = buildClassPropertiesSeq(recSecList)
+
+    let whenVarSeq: seq[NimNode] = extractWhenVar(bodyNodes)
+    for recWhen in whenVarSeq:
+        recSecList.add(recWhen)
+        
     var propsLit: NimNode =  newLit(props)
     var methodsNamesLit: NimNode = newLit(callsNames)
     result = buildClass(classDef, superClass, className, methodsNamesLit, propsLit, isGeneric)
@@ -165,5 +172,19 @@ proc createClass*(head, body: NimNode): NimNode {.compileTime.} =
                 else:
                     nameOfProc = $node[0]
                 error("Invalid or unrelated method was found : '" & nameOfProc & "'. The first parameter of the method must be its class's object.")
+        elif node.kind == nnkWhenStmt:
+            var validNodes: seq[NimNode] = @[]
+            if isValidClassWhen(node, validNodes):
+                for nextNode in validNodes:
+                    if not isValidFuncOrProcOrMeth(nextNode, className):
+                        var nameOfMFP: string
+                        if nextNode[0].kind == nnkPostfix:
+                            nameOfMFP = $nextNode[0][1]
+                        else:
+                            nameOfMFP = $nextNode[0]
+                        error("Invalid or unrelated method, procedure or function was found : '" & nameOfMFP & "'. The first parameter of the method must be its class's object.")
+                result.add(node)
+            else:
+                error("Cannot process when's body that has a mix of variables and methods.")
         else:
             result.add(node)
