@@ -503,3 +503,53 @@ static:
         assert $output[len(output) - 1][4][0] == "base"
         assert output[len(output) - 1][6].kind == nnkStmtList
         assert output[len(output) - 1][6][0].kind == nnkRaiseStmt
+
+
+    ## 
+    ## 
+    ## Check When statements
+    ## 
+    ## 
+
+
+    block: # Check When for variables
+        let ast: NimNode = parseExpr("""
+        Class MyClass:
+            var i: int = 0
+            when true:
+                var s: string
+            else:
+                var f: float
+        """)
+        let output: NimNode = createClass(ast[1], ast[2])
+        assert output[0][0][2].kind == nnkRefTy
+        assert output[0][0][2][0].kind == nnkObjectTy
+        assert output[0][0][2][0][2].kind == nnkRecList
+        assert output[0][0][2][0][2].len == 2
+        assert output[0][0][2][0][2][1].kind == nnkRecWhen
+        assert output[0][0][2][0][2][1].len == 2
+        assert output[0][0][2][0][2][1][0].kind == nnkElifBranch
+        assert output[0][0][2][0][2][1][1].kind == nnkElse
+        assert output[0][0][2][0][2][1][1][0].kind == nnkRecList
+        assert $output[0][0][2][0][2][1][1][0][0][0] == "f"
+
+
+
+    block: # Check When for methods, proc, functions
+        let ast: NimNode = parseExpr("""
+        Class MyClass:
+            when defined(linux):
+                proc x(self: MyClass) = echo "linux"
+            elif defined(windows):
+                func x(self: MyClass) = echo "windows"
+            else:
+                method x(self: MyClass) = echo "others"
+        """)
+        let output: NimNode = createClass(ast[1], ast[2])
+        assert output[len(output) - 1].kind == nnkWhenStmt
+        assert output[len(output) - 1].len == 3
+        assert output[len(output) - 1][0].kind == nnkElifBranch
+        assert output[len(output) - 1][1].kind == nnkElifBranch
+        assert output[len(output) - 1][2].kind == nnkElse
+        assert output[len(output) - 1][2][0][0].kind == nnkMethodDef
+        assert $output[len(output) - 1][2][0][0][0] == "x"
