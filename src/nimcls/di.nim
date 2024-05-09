@@ -28,11 +28,11 @@ proc copyStaticObject[T](obj: T) : pointer =
     ## Copy object
     ##
     let objSize = sizeof(T)
-    let objPtr = alloc(objSize)
-    copyMem(objPtr, addr obj, objSize)
+    let objPtr = allocShared0(objSize)
+    moveMem(objPtr, addr obj, objSize)
     return objPtr
 
-proc addSingleton*[T : ref ClassObj | ClassObj](obj : T) {.raises: [InjectionError, KeyError].} =
+proc addSingleton*[T : ref ClassObj | ClassObj](obj : T) {.raises: [InjectionError, Exception].} =
     ## Adds a singleton object
     ##
     ## Adds a singleton object of type ClassObj
@@ -101,7 +101,7 @@ proc addInjector*[T, R: ref ClassObj](clsDesc : typedesc[R], builder : proc(): T
 
 
 
-proc inject*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : T {.thread, raises: [InjectionError, KeyError, Exception].} =
+proc inject*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : T {.thread, raises: [InjectionError, Exception].} =
     ## Returns an object 
     ##
     ## Returns an object of type ClassObj 
@@ -158,6 +158,6 @@ proc resetInjectTbl*() =
         injectorsRefTbl.clear
     withLock classObjTblLock:
         for key in injectionsTblSingleton.keys:
-            dealloc injectionsTblSingleton[key]
+            deallocShared injectionsTblSingleton[key]
         injectionsTblSingleton.clear
         injectorsTbl.clear
