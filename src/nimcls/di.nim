@@ -39,15 +39,17 @@ proc addSingleton*[T : ref ClassObj | ClassObj](obj : T) {.raises: [InjectionErr
     ## to the injection table and uses its type as key for it.
     ##
     when T is ref ClassObj:
-        if injectorsRefTbl.hasKey(T.getTypeSignature):
-            raise newException(InjectionError, DUPLICATE_ERROR_1 & $T)
-        injectionsRefTblSingleton[T.getTypeSignature] = obj
+        withLock classRefObjTblLock:
+            if injectorsRefTbl.hasKey(T.getTypeSignature):
+                raise newException(InjectionError, DUPLICATE_ERROR_1 & $T)
+            injectionsRefTblSingleton[T.getTypeSignature] = obj
     else:
-        if injectorsTbl.hasKey(T.getTypeSignature):
-            raise newException(InjectionError, DUPLICATE_ERROR_1 & $T)
-        if injectionsTblSingleton.hasKey(T.getTypeSignature) :
-            dealloc injectionsTblSingleton[T.getTypeSignature] 
-        injectionsTblSingleton[T.getTypeSignature] = copyStaticObject(obj)
+        withLock classObjTblLock:
+            if injectorsTbl.hasKey(T.getTypeSignature):
+                raise newException(InjectionError, DUPLICATE_ERROR_1 & $T)
+            if injectionsTblSingleton.hasKey(T.getTypeSignature) :
+                dealloc injectionsTblSingleton[T.getTypeSignature] 
+            injectionsTblSingleton[T.getTypeSignature] = copyStaticObject(obj)
 
 
 proc addSingleton*[T, R : ref ClassObj](clsDesc : typedesc[R], obj : T) {.raises: [InjectionError].} =
@@ -58,9 +60,10 @@ proc addSingleton*[T, R : ref ClassObj](clsDesc : typedesc[R], obj : T) {.raises
     ## its type or its parent's class as key for it.
     ##
     when T is R :
-        if injectorsRefTbl.hasKey(R.getTypeSignature):
-            raise newException(InjectionError, DUPLICATE_ERROR_1 & $R)
-        injectionsRefTblSingleton[R.getTypeSignature] = obj
+        withLock classRefObjTblLock:
+            if injectorsRefTbl.hasKey(R.getTypeSignature):
+                raise newException(InjectionError, DUPLICATE_ERROR_1 & $R)
+            injectionsRefTblSingleton[R.getTypeSignature] = obj
     else:
         raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
 
@@ -73,16 +76,18 @@ proc addInjector*[T: ref ClassObj | ClassObj](builder : proc(): T) {.raises: [In
     ## and uses the object's type as key for it. 
     ##
     when T is ref ClassObj:
-        if injectionsRefTblSingleton.hasKey(T.getTypeSignature):
-            raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
-        injectorsRefTbl[T.getTypeSignature] = proc(): ref ClassObj = result = builder()
+        withLock classRefObjTblLock:
+            if injectionsRefTblSingleton.hasKey(T.getTypeSignature):
+                raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
+            injectorsRefTbl[T.getTypeSignature] = proc(): ref ClassObj = result = builder()
     else:
-        if injectionsTblSingleton.hasKey(T.getTypeSignature):
-            raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
-        injectorsTbl[T.getTypeSignature] 
-            = proc(): pointer =
-                var output = builder()
-                return addr(output)
+        withLock classObjTblLock:
+            if injectionsTblSingleton.hasKey(T.getTypeSignature):
+                raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
+            injectorsTbl[T.getTypeSignature] 
+                = proc(): pointer =
+                    var output = builder()
+                    return addr(output)
 
 
 proc addInjector*[T, R: ref ClassObj](clsDesc : typedesc[R], builder : proc(): T) {.raises: [InjectionError].} =
@@ -93,9 +98,10 @@ proc addInjector*[T, R: ref ClassObj](clsDesc : typedesc[R], builder : proc(): T
     ## it the object's type or its parent's class as key for it. 
     ##
     when T is R :
-        if injectionsRefTblSingleton.hasKey(R.getTypeSignature):
-            raise newException(InjectionError, DUPLICATE_ERROR_2 & $R)
-        injectorsRefTbl[R.getTypeSignature] = proc(): ref ClassObj = result = builder()
+        withLock classRefObjTblLock:
+            if injectionsRefTblSingleton.hasKey(R.getTypeSignature):
+                raise newException(InjectionError, DUPLICATE_ERROR_2 & $R)
+            injectorsRefTbl[R.getTypeSignature] = proc(): ref ClassObj = result = builder()
     else:
         raise newException(InjectionError, $T & SUBCLASS_1_ERROR & $R & SUBCLASS_2_ERROR)
 
