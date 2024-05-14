@@ -339,6 +339,14 @@ proc filterBodyNodes*(body: NimNode, bodyNodes: var seq[NimNode], variablesSec: 
             of nnkConstSection: error("'const' cannot be used for classes' properties !!")
             of nnkLetSection: error("'let' cannot be used for classes' properties !!")
             of nnkWhenStmt: bodyNodes.add(elem)
+            of nnkCommand:
+                if len(elem) == 3 and elem[0].kind == nnkIdent and elem[2].kind == nnkStmtList:
+                    if $elem[0] == "switch" :
+                        bodyNodes.add(elem)
+                    else:
+                        error("Only switch statements can be used inside the class body !!")
+                else:
+                    error("Only switch statements can be used inside the class body !!")
             of nnkMethodDef:
                 var methodName: string
                 if elem[0].kind == nnkPostfix:
@@ -384,7 +392,7 @@ proc isVariablesWhen*(whenNode: NimNode): bool {.compileTime.} =
     for branch in whenNode:
         if branch[len(branch) - 1].kind == nnkStmtList:
             for elem in branch[len(branch) - 1]:
-                if elem.kind != nnkVarSection:
+                if elem.kind != nnkVarSection and elem.kind != nnkDiscardStmt:
                     return false
     return true
 
@@ -404,9 +412,12 @@ proc extractWhenVar*(bodyNodes: var seq[NimNode]): seq[NimNode] {.compileTime.} 
             for elem in branch:
                 var recList = nnkRecList.newNimNode
                 if elem.kind == nnkStmtList:
-                    for varSec in elem:
-                        for variable in varSec:
-                            recList.add(variable)
+                    if elem[0].kind == nnkDiscardStmt:
+                        recList.add(newNilLit())
+                    else:
+                        for varSec in elem:
+                            for variable in varSec:
+                                recList.add(variable)
                     newBranch.add(recList)
                 else:
                     newBranch.add(elem)
@@ -426,3 +437,61 @@ proc isValidClassWhen*(whenNode: NimNode, validNodes: var seq[NimNode]): bool {.
                     of nnkProcDef: validNodes.add(elem)
                     else: return false
     return true
+
+proc isVariablesSwitch*(switchNode: NimNode): bool {.compileTime.} =
+    for branch in switchNode[2][0]:
+        if branch.kind == nnkIdent:
+            continue
+        elif branch[len(branch) - 1].kind == nnkStmtList:
+            for elem in branch[len(branch) - 1]:
+                if elem.kind != nnkVarSection and elem.kind != nnkDiscardStmt:
+                    return false
+    return true
+
+proc extractSwitchVar*(bodyNodes: var seq[NimNode]): seq[NimNode] {.compileTime.} =
+    var caseRecList: seq[NimNode] = @[]
+    var caseIdx: seq[int] = @[]
+    for i in countup(0, len(bodyNodes) - 1):
+        if bodyNodes[i].kind == nnkCommand:
+            echo bodyNodes[i].treeRepr
+            if isVariablesSwitch(bodyNodes[i]):
+                caseIdx.add(i)
+            else:
+                error("Invalid switch statement!")
+    
+    for j in countdown(len(caseIdx) - 1, 0):
+        let idx: int = caseIdx[j]
+        var recCase: NimNode = nnkRecCase.newNimNode
+        var recCaseIdentDef: NimNode = nnkIdentDefs.newNimNode
+        if bodyNodes[idx][1].kind == nnkPrefix:
+            var postFix = nnkPostfix.newNimNode
+            postFix.add(bodyNodes[idx][1][0])
+            postFix.add(bodyNodes[idx][1][1])
+            recCaseIdentDef.add(postFix)
+        elif bodyNodes[idx][1].kind == nnkIdent:
+            recCaseIdentDef.add(bodyNodes[idx][1])
+        else:
+            error("Invalid switch statement!!")
+        recCaseIdentDef.add(bodyNodes[idx][2][0][0])
+        recCaseIdentDef.add(newEmptyNode())
+        recCase.add(recCaseIdentDef)
+
+        for i in 1..(len(bodyNodes[idx][2][0]) - 1):
+            var newBranch = bodyNodes[idx][2][0][i].kind.newNimNode
+            for elem in bodyNodes[idx][2][0][i]:
+                var recList = nnkRecList.newNimNode
+                if elem.kind == nnkStmtList:
+                    if elem[0].kind == nnkDiscardStmt:
+                        recList.add(newNilLit())
+                    else:
+                        for varSec in elem:
+                            for variable in varSec:
+                                recList.add(variable)
+                    newBranch.add(recList)
+                else:
+                    newBranch.add(elem)
+            recCase.add(newBranch)
+        caseRecList.add(recCase)
+        bodyNodes.delete(idx)
+        
+    return caseRecList

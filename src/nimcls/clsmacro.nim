@@ -137,7 +137,11 @@ proc createClass*(head, body: NimNode): NimNode {.compileTime.} =
     let whenVarSeq: seq[NimNode] = extractWhenVar(bodyNodes)
     for recWhen in whenVarSeq:
         recSecList.add(recWhen)
-        
+    
+    let caseVarSeq: seq[NimNode] = extractSwitchVar(bodyNodes)
+    for caseStmt in caseVarSeq:
+        recSecList.add(caseStmt)
+
     var propsLit: NimNode =  newLit(props)
     var methodsNamesLit: NimNode = newLit(callsNames)
     result = buildClass(classDef, superClass, className, methodsNamesLit, propsLit, isGeneric)
