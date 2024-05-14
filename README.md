@@ -155,6 +155,36 @@ let person = Person(name: "Other Name")
 - object types are typically used for small, immutable data structures where you want value semantics, such as structs in other programming languages.
 - They are allocated on the stack, and their memory is automatically deallocated when they go out of scope.
 
+### Conditional Statements 
+
+```nim
+import nimcls
+
+# When statement example
+Class TryGeneric[T]:
+    var value: T
+    when T is string:
+        var length: int
+        var user: string
+    when T is int:
+        discard
+    else:
+        var name: string
+        
+
+# Case statement example
+Class Next:
+    var input: string
+    switch myChar: char :
+    of 'A':
+        var aVal: int
+    of 'Z':
+        var zVal: string
+    else:
+        var val: float
+
+```
+
 ### Interface Usage
 
 ```nim
@@ -166,7 +196,7 @@ Interface IRunner:
     method isRunning(self: IRunner): bool
 ```
 
-#### Macro Rules:
+#### Interface Macro Rules:
 1. An interface cannot have a parent class/object.
 2. An interface cannot be a generic object.
 2. An interface must have at least one method.
