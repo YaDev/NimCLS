@@ -86,8 +86,10 @@ proc addInjector*[T: ref ClassObj | ClassObj](builder : proc(): T) {.raises: [In
                 raise newException(InjectionError, DUPLICATE_ERROR_2 & $T)
             injectorsTbl[T.getTypeSignature] 
                 = proc(): pointer =
-                    var output = builder()
-                    return addr(output)
+                    let output = builder()
+                    var objPtr: pointer = allocShared0(sizeof(output))
+                    moveMem(objPtr, addr output, sizeof(output))
+                    return objPtr
 
 
 proc addInjector*[T, R: ref ClassObj](clsDesc : typedesc[R], builder : proc(): T) {.raises: [InjectionError].} =
@@ -129,7 +131,10 @@ proc inject*[T: ref ClassObj | ClassObj](clsDesc : typedesc[T]) : T {.thread, ra
                     return cast[T](cast[ptr T](injectionsTblSingleton[clsDesc.getTypeSignature])[])
                 elif injectorsTbl.hasKey(clsDesc.getTypeSignature) :
                     let callProc = injectorsTbl[clsDesc.getTypeSignature]
-                    return cast[T](cast[ptr T](callProc())[])
+                    let objPtr = cast[ptr T](callProc())
+                    let output = objPtr[]
+                    deallocShared(objPtr)
+                    return output
                 else:
                     raise newException(InjectionError, NOT_FOUND_ERROR_1 & $clsDesc)
 
