@@ -202,6 +202,23 @@ Interface IRunner:
 2. An interface must have at least one method.
 3. Only ***methods*** can be added to the interface.
 
+
+### Pragmas Usage
+
+```nim
+import nimcls
+# Example 1
+Class myFinalClass {.final.}
+
+# Example 2
+Class NextClass {.requiresInit, borrow: `.`.} :
+    var
+        name: string
+        id: int
+
+```
+
+
 ### Injection Usage
 
 There are two ways to register an injection:
