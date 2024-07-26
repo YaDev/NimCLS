@@ -495,3 +495,24 @@ proc extractSwitchVar*(bodyNodes: var seq[NimNode]): seq[NimNode] {.compileTime.
         bodyNodes.delete(idx)
         
     return caseRecList
+
+proc extractPragmas*(head: var NimNode) :  NimNode {.compileTime.} =
+    var pragmasNode: NimNode = nnkEmpty.newNimNode
+    if head.len > 0:
+        if head.kind == nnkCommand:
+            if head.len > 1:
+                if head[1].kind == nnkPragmaExpr:
+                    pragmasNode = head[1][1]
+                    head[1] = head[1][0]
+                elif head[1].kind == nnkInfix:
+                    if head[1][head[1].len - 1].kind == nnkPragmaExpr:
+                        pragmasNode = head[1][head[1].len - 1][1]
+                        head[1][head[1].len - 1] = head[1][head[1].len - 1][0]
+        elif head.kind == nnkPragmaExpr:
+            pragmasNode = head[1]
+            head = head[0]
+        elif head.kind == nnkInfix:
+            if head[head.len - 1].kind == nnkPragmaExpr:
+                pragmasNode = head[head.len - 1][1]
+                head[head.len - 1] = head[head.len - 1][0]
+    return pragmasNode

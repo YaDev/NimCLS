@@ -553,3 +553,60 @@ static:
         assert output[len(output) - 1][2].kind == nnkElse
         assert output[len(output) - 1][2][0][0].kind == nnkMethodDef
         assert $output[len(output) - 1][2][0][0][0] == "x"
+
+
+    ## 
+    ## 
+    ## Check Pragmas
+    ##
+    ## 
+
+    block: # Check methods and procedures
+        let ast: NimNode = parseExpr("Class MyClass {.final.}")
+        let output: NimNode = createClass(ast[1])
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkPragmaExpr
+        assert output[0][0][0][0].kind == nnkIdent
+        assert output[0][0][0][1].kind == nnkPragma
+        assert $output[0][0][0][1][0] == "final"
+
+
+    block: # Check methods and procedures
+        let ast: NimNode = parseExpr("Class static MyClass {.final.}")
+        let output: NimNode = createClass(ast[1])
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkPragmaExpr
+        assert output[0][0][0][0].kind == nnkIdent
+        assert output[0][0][0][1].kind == nnkPragma
+        assert $output[0][0][0][1][0] == "final"
+
+
+    block: # Check methods and procedures
+        let ast: NimNode = parseExpr("Class *MyClass {.final.}")
+        let output: NimNode = createClass(ast[1])
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkPragmaExpr
+        assert output[0][0][0][0].kind == nnkPostfix
+        assert output[0][0][0][1].kind == nnkPragma
+        assert $output[0][0][0][1][0] == "final"
+
+
+    block: # Check methods and procedures
+        let ast: NimNode = parseExpr("Class static MyClass[XY, YZ] {.final.}")
+        let output: NimNode = createClass(ast[1])
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkPragmaExpr
+        assert output[0][0][0][0].kind == nnkIdent
+        assert output[0][0][0][1].kind == nnkPragma
+        assert $output[0][0][0][1][0] == "final"
+
+
+    block: # Check methods and procedures
+        let ast: NimNode = parseExpr("Class static MyClass*[XY, YZ](Test) {.final.}")
+        let output: NimNode = createClass(ast[1])
+        assert output[0][0].kind == nnkTypeDef
+        assert output[0][0][0].kind == nnkPragmaExpr
+        assert output[0][0][0][0].kind == nnkPostfix
+        assert output[0][0][0][1].kind == nnkPragma
+        assert $output[0][0][0][1][0] == "final"
+

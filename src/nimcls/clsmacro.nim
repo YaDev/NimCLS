@@ -48,25 +48,33 @@ proc createInterface*(head, body: NimNode): NimNode {.compileTime.} =
                 error("Invalid or unrelated method was found : '" & nameOfProc & "'. The first parameter of the method must be its object and it cannot be generic.")
 
 proc createClass*(head: NimNode): NimNode {.compileTime.} =
-    let 
-        isGeneric: bool = isGeneric(head)
-        isStatic: bool = isItStatic(head)
-        isExported: bool = isClassExported(head, isStatic, isGeneric)
+    var headCopy: NimNode = head.copy
+    let
+        pragmas: NimNode = extractPragmas(headCopy)
+        isGeneric: bool = isGeneric(headCopy)
+        isStatic: bool = isItStatic(headCopy)
+        isExported: bool = isClassExported(headCopy, isStatic, isGeneric)
     var superClass: NimNode
     if isStatic:
-        superClass = getParentClassStatic(head, isGeneric)
+        superClass = getParentClassStatic(headCopy, isGeneric)
     else:
-        superClass = getParentClass(head, isExported, isGeneric)
+        superClass = getParentClass(headCopy, isExported, isGeneric)
     let 
-        className: NimNode = getClassNameNode(head, isExported, isStatic, isGeneric)
+        className: NimNode = getClassNameNode(headCopy, isExported, isStatic, isGeneric)
+    var
         classDef: NimNode = genClassDef(className, superClass, isExported, isStatic)
     if isGeneric:
-        var genParam: NimNode = genGenericParams(head)
+        var genParam: NimNode = genGenericParams(headCopy)
         if len(genParam) < 1 :
             error("Invalid class's syntax")
         for i in countup(0, len(classDef[0]) - 1 ):
             if classDef[0][i].kind == nnkEmpty:
                 classDef[0][i] = genParam
+    if pragmas.kind == nnkPragma:
+        var pragmaExpr: NimNode = nnkPragmaExpr.newNimNode
+        pragmaExpr.add(classDef[0][0])
+        pragmaExpr.add(pragmas)
+        classDef[0][0] = pragmaExpr
     let 
         props: seq[string] = @[]
         callsNames: seq[string] = @[]
@@ -76,35 +84,44 @@ proc createClass*(head: NimNode): NimNode {.compileTime.} =
     
 proc createClass*(head, body: NimNode): NimNode {.compileTime.} =
     var
+        headCopy: NimNode = head.copy
         bodyNodes: seq[NimNode] = @[]
         variablesSec: seq[NimNode] = @[]
         methodsProcFuncNames: HashSet[string] = initHashSet[string]()
         callsNames: seq[string] = @[]
         scratchRecList = newNimNode(nnkRecList)
 
-    let 
-        isStatic: bool = isItStatic(head)
-        isGeneric: bool = isGeneric(head)
-        isExported: bool = isClassExported(head, isStatic, isGeneric)
+    let
+        pragmas: NimNode = extractPragmas(headCopy) 
+        isStatic: bool = isItStatic(headCopy)
+        isGeneric: bool = isGeneric(headCopy)
+        isExported: bool = isClassExported(headCopy, isStatic, isGeneric)
         
     filterBodyNodes(body, bodyNodes, variablesSec, methodsProcFuncNames) 
     for name in methodsProcFuncNames:
         callsNames.add(name)
     var superClass: NimNode
     if isStatic:
-        superClass = getParentClassStatic(head, isGeneric)
+        superClass = getParentClassStatic(headCopy, isGeneric)
     else:
-        superClass = getParentClass(head, isExported, isGeneric)
+        superClass = getParentClass(headCopy, isExported, isGeneric)
 
-    let className: NimNode = getClassNameNode(head, isExported, isStatic, isGeneric)
+    let className: NimNode = getClassNameNode(headCopy, isExported, isStatic, isGeneric)
     var classDef: NimNode = genClassDef(className, superClass, isExported, isStatic)
     if isGeneric:
-        var genParam: NimNode = genGenericParams(head)
+        var genParam: NimNode = genGenericParams(headCopy)
         if len(genParam) < 1 :
             error("Invalid syntax")
         for i in countup(0, len(classDef[0]) - 1 ):
             if classDef[0][i].kind == nnkEmpty:
                 classDef[0][i] = genParam
+   
+    if pragmas.kind == nnkPragma:
+        var pragmaExpr: NimNode = nnkPragmaExpr.newNimNode
+        pragmaExpr.add(classDef[0][0])
+        pragmaExpr.add(pragmas)
+        classDef[0][0] = pragmaExpr
+        echo classDef.treeRepr
 
     var recSecList: NimNode
     if isStatic:
